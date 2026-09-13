@@ -50,6 +50,16 @@ export function verifyTelegramWebAppData(telegramInitData: string): TelegramUser
     return null; // 데이터 위조됨
   }
 
+  // auth_date 만료 검증 (기본 24시간, 재플레이 공격 방지)
+  const authDateStr = urlParams.get('auth_date');
+  if (authDateStr) {
+    const authDate = parseInt(authDateStr, 10);
+    const now = Math.floor(Date.now() / 1000);
+    if (isNaN(authDate) || now - authDate > 86400) {
+      return null; // 24시간 초과 시 만료 처리
+    }
+  }
+
   const userStr = urlParams.get('user');
   if (!userStr) return null;
 
