@@ -1,7 +1,16 @@
 export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'VIEWER';
 export type AdminStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
-export type FormStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
-export type QuestionType = 'TEXT' | 'MULTIPLE_CHOICE' | 'RATING' | 'CHECKBOX';
+export type FormStatus = 'DRAFT' | 'ACTIVE' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED';
+export type QuestionType =
+  | 'TEXT'
+  | 'SHORT_TEXT'
+  | 'LONG_TEXT'
+  | 'SINGLE_CHOICE'
+  | 'MULTIPLE_CHOICE'
+  | 'RATING'
+  | 'NUMERIC'
+  | 'CHECKBOX';
+
 export type AdminRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface Admin {
@@ -20,6 +29,10 @@ export interface Form {
   title: string;
   description?: string | null;
   status: FormStatus;
+  deadline_at?: string | null;
+  completion_message?: string | null;
+  response_chat_id?: number | null;
+  response_topic_id?: number | null;
   created_by?: string | null;
   created_at: string;
   updated_at: string;
@@ -29,12 +42,21 @@ export interface Question {
   id: string;
   form_id: string;
   question_text: string;
+  description?: string | null;
   question_type: QuestionType;
-  options: string[] | Record<string, any>;
+  options?: string[] | Record<string, any> | null;
   is_required: boolean;
   order_index: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface QuestionSnapshot {
+  question_text: string;
+  description?: string | null;
+  question_type: QuestionType;
+  options?: any;
+  is_required: boolean;
 }
 
 export interface Response {
@@ -44,13 +66,17 @@ export interface Response {
   telegram_username?: string | null;
   telegram_first_name?: string | null;
   submitted_at: string;
+  updated_at?: string | null;
+  is_edited?: boolean;
   telegram_message_id?: number | null;
+  previous_telegram_message_id?: number | null;
 }
 
 export interface ResponseAnswer {
   id: string;
   response_id: string;
   question_id: string;
+  question_snapshot: QuestionSnapshot;
   answer_value: string;
   created_at: string;
 }

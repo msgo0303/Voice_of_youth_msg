@@ -1,4 +1,4 @@
--- Voice of Youth Msg - Supabase PostgreSQL Schema DDL
+-- Voice of Youth Msg - Supabase PostgreSQL Schema DDL (v1.0 Specification)
 
 -- 1. Admins Table
 CREATE TABLE IF NOT EXISTS public.admins (
@@ -17,7 +17,11 @@ CREATE TABLE IF NOT EXISTS public.forms (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT,
-    status TEXT NOT NULL CHECK (status IN ('DRAFT', 'PUBLISHED', 'CLOSED')) DEFAULT 'DRAFT',
+    status TEXT NOT NULL CHECK (status IN ('DRAFT', 'ACTIVE', 'PUBLISHED', 'CLOSED', 'ARCHIVED')) DEFAULT 'DRAFT',
+    deadline_at TIMESTAMPTZ,
+    completion_message TEXT,
+    response_chat_id BIGINT,
+    response_topic_id INT,
     created_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -28,7 +32,8 @@ CREATE TABLE IF NOT EXISTS public.questions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     form_id UUID NOT NULL REFERENCES public.forms(id) ON DELETE CASCADE,
     question_text TEXT NOT NULL,
-    question_type TEXT NOT NULL CHECK (question_type IN ('TEXT', 'MULTIPLE_CHOICE', 'RATING', 'CHECKBOX')) DEFAULT 'TEXT',
+    description TEXT,
+    question_type TEXT NOT NULL CHECK (question_type IN ('TEXT', 'SHORT_TEXT', 'LONG_TEXT', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'RATING', 'NUMERIC', 'CHECKBOX')) DEFAULT 'SHORT_TEXT',
     options JSONB DEFAULT '[]'::jsonb,
     is_required BOOLEAN DEFAULT true,
     order_index INT DEFAULT 0,
@@ -44,14 +49,18 @@ CREATE TABLE IF NOT EXISTS public.responses (
     telegram_username TEXT,
     telegram_first_name TEXT,
     submitted_at TIMESTAMPTZ DEFAULT NOW(),
-    telegram_message_id BIGINT
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    is_edited BOOLEAN DEFAULT FALSE,
+    telegram_message_id BIGINT,
+    previous_telegram_message_id BIGINT
 );
 
--- 5. Response Answers Table
+-- 5. Response Answers Table (Includes question_snapshot for historical immutability)
 CREATE TABLE IF NOT EXISTS public.response_answers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     response_id UUID NOT NULL REFERENCES public.responses(id) ON DELETE CASCADE,
     question_id UUID NOT NULL REFERENCES public.questions(id) ON DELETE CASCADE,
+    question_snapshot JSONB NOT NULL,
     answer_value TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
