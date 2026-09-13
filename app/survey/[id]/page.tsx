@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { Form, Question } from '@/types/database';
 import {
@@ -9,13 +9,18 @@ import {
   AlertCircle,
   Clock,
   Sparkles,
-  X
+  X,
+  History,
+  Edit3
 } from 'lucide-react';
 
 export default function UserSurveyPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const formId = params.id as string;
+  const isEditQuery = searchParams.get('edit') === 'true';
+
   const { isAuthenticated, initData } = useTelegramAuth();
 
   // Data states
@@ -23,6 +28,7 @@ export default function UserSurveyPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [satisfactionReasons, setSatisfactionReasons] = useState<Record<string, string>>({});
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // UI Flow states
   const [loading, setLoading] = useState(true);
@@ -32,8 +38,9 @@ export default function UserSurveyPage() {
   const [submittedResponse, setSubmittedResponse] = useState<{ id: string; message: string } | null>(null);
 
   useEffect(() => {
-    async function fetchPublicForm() {
+    async function fetchPublicFormAndResponse() {
       try {
+        // 1. Fetch Form & Questions
         const res = await fetch(`/api/admin/forms/${formId}`, {
           headers: { 'x-telegram-init-data': initData }
         });
@@ -43,18 +50,47 @@ export default function UserSurveyPage() {
           setQuestions(json.questions || []);
         } else {
           setValidationError(json.error || '설문을 찾을 수 없습니다.');
+          setLoading(false);
+          return;
+        }
+
+        // 2. Fetch Existing Response for this user if available
+        const respRes = await fetch(`/api/survey/${formId}/submit`, {
+          headers: { 'x-telegram-init-data': initData }
+        });
+        const respJson = await respRes.json();
+        if (respRes.ok && respJson.response?.response_answers) {
+          const existingAnswersMap: Record<string, string> = {};
+          const existingReasonsMap: Record<string, string> = {};
+
+          respJson.response.response_answers.forEach((ans: any) => {
+            existingAnswersMap[ans.question_id] = ans.answer_value;
+
+            if (ans.answer_value.includes(' - 사유: ')) {
+              const parts = ans.answer_value.split(' - 사유: ');
+              if (parts[1]) {
+                existingReasonsMap[ans.question_id] = parts[1];
+              }
+            }
+          });
+
+          setAnswers(existingAnswersMap);
+          setSatisfactionReasons(existingReasonsMap);
+          setIsEditMode(true);
+        } else if (isEditQuery) {
+          setIsEditMode(true);
         }
       } catch (err: any) {
-        setValidationError(err.message || '네트워크 오류');
+        setValidationError(err.message || '네트워크 오류가 발생했습니다.');
       } finally {
         setLoading(false);
       }
     }
 
     if (formId) {
-      fetchPublicForm();
+      fetchPublicFormAndResponse();
     }
-  }, [formId, initData]);
+  }, [formId, initData, isEditQuery]);
 
   const handleSingleAnswerChange = (questionId: string, val: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: val }));
@@ -125,8 +161,9 @@ export default function UserSurveyPage() {
     setSubmitting(true);
 
     try {
+      const method = isEditMode ? 'PUT' : 'POST';
       const res = await fetch(`/api/survey/${formId}/submit`, {
-        method: 'POST',
+        method,
         headers: {
           'Content-Type': 'application/json',
           'x-telegram-init-data': initData
@@ -139,7 +176,7 @@ export default function UserSurveyPage() {
       if (res.ok && json.success) {
         setSubmittedResponse({
           id: json.response_id,
-          message: json.message || '응답이 성공적으로 제출되었습니다.'
+          message: json.message || (isEditMode ? '응답이 성공적으로 수정되었습니다.' : '응답이 성공적으로 제출되었습니다.')
         });
       } else {
         setValidationError(json.error || '제출 실패');
@@ -162,7 +199,7 @@ export default function UserSurveyPage() {
     );
   }
 
-  // Stitch Design 6 Complete View
+  // Stitch Design 6 Complete Submission Success Screen
   if (submittedResponse) {
     return (
       <div className="min-h-screen bg-[#FAF8FF] p-4 flex items-center justify-center">
@@ -172,7 +209,9 @@ export default function UserSurveyPage() {
           </div>
 
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-slate-900">제출이 완료되었습니다! 🎉</h1>
+            <h1 className="text-xl font-bold text-slate-900">
+              {isEditMode ? '수정이 완료되었습니다! 🎉' : '제출이 완료되었습니다! 🎉'}
+            </h1>
             <p className="text-xs text-slate-600 leading-relaxed">
               {submittedResponse.message}
             </p>
@@ -182,12 +221,22 @@ export default function UserSurveyPage() {
             응답 ID: #{submittedResponse.id.slice(0, 8)}
           </div>
 
-          <button
-            onClick={() => window.Telegram?.WebApp?.close()}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow hover:bg-blue-700 transition"
-          >
-            닫기
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={() => router.push('/survey/my')}
+              className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow hover:bg-blue-700 transition flex items-center justify-center space-x-1.5"
+            >
+              <History className="w-4 h-4" />
+              <span>내 참여 내역 보기</span>
+            </button>
+
+            <button
+              onClick={() => window.Telegram?.WebApp?.close()}
+              className="w-full py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-200 transition"
+            >
+              닫기
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -201,9 +250,17 @@ export default function UserSurveyPage() {
           <Sparkles className="w-5 h-5 text-blue-600" />
           <span className="font-bold text-slate-900 text-base">FormGram</span>
         </div>
-        <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">
-          {form?.status}
-        </span>
+        <div className="flex items-center space-x-2">
+          {isEditMode && (
+            <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+              <Edit3 className="w-3 h-3" />
+              <span>수정 모드</span>
+            </span>
+          )}
+          <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">
+            {form?.status}
+          </span>
+        </div>
       </header>
 
       <main className="max-w-lg mx-auto p-4 space-y-4">
@@ -387,7 +444,7 @@ export default function UserSurveyPage() {
             disabled={submitting}
             className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-extrabold text-sm shadow-lg active:scale-95 transition disabled:opacity-50"
           >
-            응답 제출하기
+            {isEditMode ? '응답 수정 완료하기' : '응답 제출하기'}
           </button>
         </div>
       </div>
@@ -397,15 +454,18 @@ export default function UserSurveyPage() {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-bold text-slate-900 text-base">응답 제출 확인</h3>
+              <h3 className="font-bold text-slate-900 text-base">
+                {isEditMode ? '응답 수정 확인' : '응답 제출 확인'}
+              </h3>
               <button onClick={() => setShowConfirmModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              응답을 제출하시겠습니까?<br />
-              제출 후 나중에 내 응답 메뉴에서 수정할 수 있습니다.
+              {isEditMode
+                ? '수정된 답변으로 저장하시겠습니까?\n텔레그램 채팅방에도 수정 내역이 업데이트됩니다.'
+                : '응답을 제출하시겠습니까?\n제출 후 나중에 내 응답 메뉴에서 수정할 수 있습니다.'}
             </p>
 
             <div className="flex items-center space-x-3 pt-2">
@@ -420,7 +480,7 @@ export default function UserSurveyPage() {
                 disabled={submitting}
                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50"
               >
-                {submitting ? '제출 중...' : '제출하기'}
+                {submitting ? '처리 중...' : isEditMode ? '수정 저장' : '제출하기'}
               </button>
             </div>
           </div>

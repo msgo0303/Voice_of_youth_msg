@@ -5,6 +5,55 @@ import { sendTelegramBotMessage } from '@/lib/telegramBot';
 import { QuestionSnapshot } from '@/types/database';
 import { decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
+// GET /api/survey/[id]/submit - Fetch existing user response for this form
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const formId = params.id;
+  if (!formId) {
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
+  }
+
+  const session = await getAuthSessionFromRequest(req);
+  if (!session.authenticated || !session.user) {
+    return NextResponse.json({ response: null });
+  }
+
+  try {
+    const supabase = getServiceSupabase();
+
+    const { data: response, error } = await supabase
+      .from('responses')
+      .select(`
+        *,
+        response_answers (
+          question_id,
+          answer_value,
+          question_snapshot
+        )
+      `)
+      .eq('form_id', formId)
+      .eq('telegram_user_id', session.user.id)
+      .order('submitted_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !response) {
+      return NextResponse.json({ response: null });
+    }
+
+    return NextResponse.json({
+      success: true,
+      response
+    });
+  } catch (err: any) {
+    console.error('Fetch survey response error:', err);
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
+// POST /api/survey/[id]/submit - Submit new response
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -119,13 +168,11 @@ export async function POST(
       };
     });
 
-
     const { error: ansInsertErr } = await supabase
       .from('response_answers')
       .insert(answerRows);
 
     if (ansInsertErr) {
-      // Rollback response if answers fail
       await supabase.from('responses').delete().eq('id', newResponse.id);
       return NextResponse.json({ error: `답변 상세 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
@@ -142,7 +189,6 @@ export async function POST(
       let targetChatId = form.response_chat_id;
       let targetTopicId = form.response_topic_id;
 
-      // Fallback: If form does not have response_chat_id set, lookup forum_topics table or use default
       if (!targetChatId) {
         const { data: cachedTopic } = await supabase
           .from('forum_topics')
@@ -175,7 +221,6 @@ export async function POST(
         parse_mode: 'HTML'
       });
 
-      // If dispatch to specific topic thread failed, retry sending directly to group chat
       if (!telegramRes.ok && targetTopicId) {
         console.warn(`Telegram topic send failed (${telegramRes.error}), retrying without topic thread...`);
         telegramRes = await sendTelegramBotMessage({
@@ -188,7 +233,6 @@ export async function POST(
       if (telegramRes.ok && telegramRes.result?.message_id) {
         telegramMessageId = telegramRes.result.message_id;
 
-        // Save Telegram Message ID to response row
         await supabase
           .from('responses')
           .update({ telegram_message_id: telegramMessageId })
@@ -208,6 +252,181 @@ export async function POST(
     }, { status: 201 });
   } catch (error: any) {
     console.error('Survey submission error:', error);
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
+// PUT /api/survey/[id]/submit - Update existing response
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const formId = params.id;
+  if (!formId) {
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
+  }
+
+  const session = await getAuthSessionFromRequest(req);
+  if (!session.authenticated || !session.user) {
+    return NextResponse.json(
+      { error: '인증 오류: 텔레그램 계정 인증이 필요합니다.' },
+      { status: 401 }
+    );
+  }
+
+  const user = session.user;
+
+  try {
+    const body = await req.json();
+    const { answers } = body;
+
+    if (!answers || typeof answers !== 'object') {
+      return NextResponse.json({ error: '유효하지 않은 응답 데이터 형식입니다.' }, { status: 400 });
+    }
+
+    const supabase = getServiceSupabase();
+
+    // 1. Fetch Form metadata & verify ACTIVE status
+    const { data: form, error: formErr } = await supabase
+      .from('forms')
+      .select('*')
+      .eq('id', formId)
+      .single();
+
+    if (formErr || !form) {
+      return NextResponse.json({ error: '설문을 찾을 수 없습니다.' }, { status: 404 });
+    }
+
+    if (form.status !== 'ACTIVE') {
+      return NextResponse.json(
+        { error: '마감되었거나 종료된 설문의 응답은 수정할 수 없습니다.' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Find existing response for this user & form
+    const { data: existingResponse } = await supabase
+      .from('responses')
+      .select('id')
+      .eq('form_id', formId)
+      .eq('telegram_user_id', user.id)
+      .maybeSingle();
+
+    if (!existingResponse) {
+      return NextResponse.json(
+        { error: '수정할 기존 응답 내역을 찾을 수 없습니다.' },
+        { status: 404 }
+      );
+    }
+
+    // 3. Fetch Questions for validation
+    const { data: rawQuestions, error: qErr } = await supabase
+      .from('questions')
+      .select('*')
+      .eq('form_id', formId)
+      .order('order_index', { ascending: true });
+
+    if (qErr || !rawQuestions || rawQuestions.length === 0) {
+      return NextResponse.json({ error: '질문 목록을 불러올 수 없습니다.' }, { status: 400 });
+    }
+
+    const questions = rawQuestions.map((q: any) => decodeQuestionFromDb(q));
+
+    // 4. Validate required questions
+    const missingQuestions: string[] = [];
+    for (const q of questions) {
+      const val = answers[q.id];
+      if (q.required && (!val || !val.trim())) {
+        missingQuestions.push(q.title);
+      }
+    }
+
+    if (missingQuestions.length > 0) {
+      return NextResponse.json(
+        { error: `필수 질문 [${missingQuestions.join(', ')}]의 응답이 누락되었습니다.` },
+        { status: 400 }
+      );
+    }
+
+    // 5. Update response row (set is_edited = true, updated_at = now)
+    const { error: respUpdateErr } = await supabase
+      .from('responses')
+      .update({
+        updated_at: new Date().toISOString(),
+        is_edited: true
+      })
+      .eq('id', existingResponse.id);
+
+    if (respUpdateErr) {
+      return NextResponse.json({ error: `응답 수정 실패: ${respUpdateErr.message}` }, { status: 500 });
+    }
+
+    // 6. Delete old response_answers & insert updated ones
+    await supabase.from('response_answers').delete().eq('response_id', existingResponse.id);
+
+    const answerRows = questions.map((q: any) => {
+      const snapshot: QuestionSnapshot = {
+        title: q.title,
+        description: q.description || null,
+        type: q.type,
+        options: q.options || [],
+        required: q.required
+      };
+
+      return {
+        response_id: existingResponse.id,
+        question_id: q.id,
+        question_snapshot: snapshot,
+        answer_value: answers[q.id] || ''
+      };
+    });
+
+    const { error: ansInsertErr } = await supabase
+      .from('response_answers')
+      .insert(answerRows);
+
+    if (ansInsertErr) {
+      return NextResponse.json({ error: `수정된 답변 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
+    }
+
+    // 7. Send Telegram Notification about Response Edit
+    try {
+      const escapeHtml = (str: string) =>
+        String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
+
+      let targetChatId = form.response_chat_id || process.env.TELEGRAM_CHAT_ID || -1003721720880;
+      let targetTopicId = form.response_topic_id;
+
+      let messageText = `✏️ <b>[설문 응답 수정 알림]</b>\n`;
+      messageText += `📌 <b>설문 제목</b>: ${escapeHtml(form.title)}\n`;
+      messageText += `👤 <b>응답자</b>: ${escapeHtml(user.first_name || '이용자')}${user.username ? ` (@${escapeHtml(user.username)})` : ''}\n`;
+      messageText += `🕒 <b>수정 일시</b>: ${new Date().toLocaleString('ko-KR')}\n\n`;
+
+      questions.forEach((q: any, idx: number) => {
+        const ansVal = answers[q.id] || '(응답 없음)';
+        messageText += `<b>Q${idx + 1}. ${escapeHtml(q.title)}</b>\n↳ ${escapeHtml(ansVal)}\n\n`;
+      });
+
+      await sendTelegramBotMessage({
+        chat_id: targetChatId,
+        message_thread_id: targetTopicId ? Number(targetTopicId) : undefined,
+        text: messageText,
+        parse_mode: 'HTML'
+      });
+    } catch (tgErr) {
+      console.warn('Failed to send response update notification:', tgErr);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: '응답이 성공적으로 수정되었습니다.',
+      response_id: existingResponse.id
+    });
+  } catch (error: any) {
+    console.error('Survey response update error:', error);
     return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
