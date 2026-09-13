@@ -7,7 +7,7 @@ const SUPER_ADMIN_TELEGRAM_ID = 1284576145;
 // POST /api/telegram/webhook - Telegram Bot Webhook endpoint
 export async function POST(req: NextRequest) {
   try {
-    // Optional secret token verification
+    // 1. Secret token verification
     const secretTokenHeader = req.headers.get('x-telegram-bot-api-secret-token');
     const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
 
@@ -16,9 +16,21 @@ export async function POST(req: NextRequest) {
     }
 
     const update = await req.json();
-    console.log('Received Telegram Webhook Update:', JSON.stringify(update));
+    const updateId = update.update_id;
 
     const supabase = getServiceSupabase();
+
+    // 2. DB Unique Constraint Deduplication Defense
+    if (updateId) {
+      const { error: dedupErr } = await supabase
+        .from('telegram_updates')
+        .insert({ update_id: updateId });
+
+      if (dedupErr) {
+        // Primary key conflict means this update_id was already processed
+        return NextResponse.json({ ok: true, duplicate: true });
+      }
+    }
 
     // 1. Handle forum_topic_created event
     if (update.message?.forum_topic_created) {

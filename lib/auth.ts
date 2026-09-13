@@ -26,8 +26,11 @@ export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthS
     }
   }
 
-  // 2. Fallback to x-telegram-user-id header (External browser test fallback)
-  if (telegramUserIdHeader) {
+  // 2. Fallback to x-telegram-user-id header (Allowed ONLY in development/testing mode)
+  const isProduction = process.env.NODE_ENV === 'production';
+  const allowHeaderAuth = process.env.ALLOW_HEADER_AUTH === 'true';
+
+  if (telegramUserIdHeader && (!isProduction || allowHeaderAuth)) {
     return getAuthSessionByUserId(Number(telegramUserIdHeader));
   }
 
@@ -36,7 +39,7 @@ export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthS
     user: null,
     admin: null,
     role: 'USER',
-    error: 'Missing initData or x-telegram-user-id header'
+    error: 'Missing or invalid initData authentication'
   };
 }
 

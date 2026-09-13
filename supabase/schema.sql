@@ -86,9 +86,16 @@ CREATE TABLE IF NOT EXISTS public.forum_topics (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8. Telegram Updates Table (Deduplication Defense)
+CREATE TABLE IF NOT EXISTS public.telegram_updates (
+    update_id BIGINT PRIMARY KEY,
+    received_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Indices for performance
 CREATE INDEX IF NOT EXISTS idx_questions_form_id ON public.questions(form_id);
 CREATE INDEX IF NOT EXISTS idx_responses_form_id ON public.responses(form_id);
 CREATE INDEX IF NOT EXISTS idx_response_answers_response_id ON public.response_answers(response_id);
 CREATE INDEX IF NOT EXISTS idx_response_answers_question_id ON public.response_answers(question_id);
 CREATE INDEX IF NOT EXISTS idx_forum_topics_chat_topic ON public.forum_topics(chat_id, topic_id);
+
