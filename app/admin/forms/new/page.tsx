@@ -268,7 +268,7 @@ export default function NewFormBuilderPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-20">
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm sticky top-16 z-20">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.back()}
@@ -278,7 +278,7 @@ export default function NewFormBuilderPage() {
           </button>
           <div>
             <h1 className="font-bold text-slate-900 text-lg flex items-center space-x-2">
-              <span>FormGram (폼그램) 설문 빌더</span>
+              <span>새 설문 작성</span>
               <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">
                 ACTIVE MODE
               </span>
@@ -288,14 +288,16 @@ export default function NewFormBuilderPage() {
         </div>
 
         {!isViewOnly && (
-          <button
-            onClick={handleSaveAndActivate}
-            disabled={saving}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow-md active:scale-95 transition disabled:opacity-50 shrink-0"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{saving ? '저장 중...' : '저장 & 활성화'}</span>
-          </button>
+          <div className="pt-2 border-t border-slate-100 flex justify-end">
+            <button
+              onClick={handleSaveAndActivate}
+              disabled={saving}
+              className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow-md active:scale-95 transition disabled:opacity-50 whitespace-nowrap"
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{saving ? '저장 중...' : '저장 & 활성화'}</span>
+            </button>
+          </div>
         )}
       </div>
 
