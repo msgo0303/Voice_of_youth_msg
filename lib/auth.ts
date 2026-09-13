@@ -18,27 +18,15 @@ export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthS
   const initData = req.headers.get('x-telegram-init-data') || req.headers.get('authorization')?.replace('Bearer ', '');
   const telegramUserIdHeader = req.headers.get('x-telegram-user-id');
 
-  // 1. Try initData first
+  // 1. Try initData first (Inside Telegram Mini App)
   if (initData) {
     const session = await getAuthSession(initData);
-    if (session.authenticated && session.role !== 'USER') {
+    if (session.authenticated) {
       return session;
     }
   }
 
-  // 2. Fallback to x-telegram-user-id header
-  if (telegramUserIdHeader) {
-    const sessionByUserId = await getAuthSessionByUserId(Number(telegramUserIdHeader));
-    if (sessionByUserId.authenticated && sessionByUserId.role !== 'USER') {
-      return sessionByUserId;
-    }
-  }
-
-  // 3. Last resort fallback
-  if (initData) {
-    return getAuthSession(initData);
-  }
-
+  // 2. Fallback to x-telegram-user-id header (External browser test fallback)
   if (telegramUserIdHeader) {
     return getAuthSessionByUserId(Number(telegramUserIdHeader));
   }

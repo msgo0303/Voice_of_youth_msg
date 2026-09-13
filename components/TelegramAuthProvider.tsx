@@ -133,10 +133,28 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
 
       // 2. External Browser Fallback (Chrome/Safari testing)
       const savedUserId = typeof window !== 'undefined' ? localStorage.getItem('formgram_test_user_id') : null;
-      const targetUserId = savedUserId ? Number(savedUserId) : DEFAULT_SUPER_ADMIN_ID;
 
-      setAuthState((prev) => ({ ...prev, setTestUserId: handleSetTestUserId }));
-      verifyUserByUserId(targetUserId);
+      if (savedUserId) {
+        setAuthState((prev) => ({ ...prev, setTestUserId: handleSetTestUserId }));
+        verifyUserByUserId(Number(savedUserId));
+      } else {
+        // Default for regular web visitors is USER role (normal survey respondent)
+        setAuthState({
+          isLoading: false,
+          isAuthenticated: true,
+          user: {
+            id: Math.floor(100000000 + Math.random() * 900000000),
+            first_name: '웹 사용자',
+            last_name: '',
+            username: undefined
+          },
+          role: 'USER',
+          initData: '',
+          telegramUserId: null,
+          error: null,
+          setTestUserId: handleSetTestUserId
+        });
+      }
     }
 
     initTelegramAuth();
