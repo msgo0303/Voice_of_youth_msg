@@ -16,7 +16,14 @@ const supabaseServiceRoleKey =
 // 클라이언트 사이드용 (공개 키)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+let cachedServiceClient: ReturnType<typeof createClient> | null = null;
+
 // 서버 전용 관리자 클라이언트 (Service Role Key - RLS 우회용)
 export const getServiceSupabase = () => {
-  return createClient(supabaseUrl, supabaseServiceRoleKey);
+  if (!cachedServiceClient) {
+    cachedServiceClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: { persistSession: false }
+    });
+  }
+  return cachedServiceClient;
 };

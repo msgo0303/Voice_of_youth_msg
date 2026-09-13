@@ -26,25 +26,27 @@ export async function GET(req: NextRequest) {
       dbQuery = dbQuery.ilike('title', `%${query}%`);
     }
 
-    const { data: forms, error } = await dbQuery;
+    const [{ data: forms, error }, { data: responsesData }] = await Promise.all([
+      dbQuery,
+      supabase.from('responses').select('form_id')
+    ]);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Attach response counts for each form
-    const formsWithCounts = await Promise.all(
-      (forms || []).map(async (form) => {
-        const { count } = await supabase
-          .from('responses')
-          .select('*', { count: 'exact', head: true })
-          .eq('form_id', form.id);
-        return {
-          ...form,
-          responseCount: count || 0
-        };
-      })
-    );
+    // Build response count map in memory (O(1) lookup per form)
+    const countsMap: Record<string, number> = {};
+    (responsesData || []).forEach((r) => {
+      if (r.form_id) {
+        countsMap[r.form_id] = (countsMap[r.form_id] || 0) + 1;
+      }
+    });
+
+    const formsWithCounts = (forms || []).map((form) => ({
+      ...form,
+      responseCount: countsMap[form.id] || 0
+    }));
 
     return NextResponse.json({
       success: true,
