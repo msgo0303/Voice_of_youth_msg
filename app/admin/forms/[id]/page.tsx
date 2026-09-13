@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { Form, Question, FormStatus } from '@/types/database';
@@ -43,7 +43,9 @@ interface ResponseDetail {
 export default function AdminFormDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const formId = params.id as string;
+  const initialTab = searchParams.get('tab') === 'responses' ? 'responses' : 'info';
   const { role, initData, telegramUserId, user } = useTelegramAuth();
 
   const [form, setForm] = useState<Form & { responseCount: number } | null>(null);
@@ -53,7 +55,7 @@ export default function AdminFormDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Tabs & Responses State
-  const [activeTab, setActiveTab] = useState<'info' | 'responses'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'responses'>(initialTab);
   const [responses, setResponses] = useState<ResponseDetail[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [responsesError, setResponsesError] = useState<string | null>(null);

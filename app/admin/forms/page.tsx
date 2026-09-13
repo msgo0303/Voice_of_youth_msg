@@ -157,7 +157,9 @@ export default function AdminFormsPage() {
                       >
                         {form.status}
                       </span>
-                      <h3 className="font-bold text-slate-900 text-base truncate">{form.title}</h3>
+                      <Link href={`/admin/forms/${form.id}`}>
+                        <h3 className="font-bold text-slate-900 text-base truncate hover:text-blue-600 transition cursor-pointer">{form.title}</h3>
+                      </Link>
                     </div>
 
                     {form.description && <p className="text-xs text-slate-600 line-clamp-1">{form.description}</p>}
@@ -195,15 +197,19 @@ export default function AdminFormsPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2.5 self-end sm:self-auto shrink-0">
-                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg">
-                      {form.responseCount}건 응답
-                    </span>
+                  <div className="flex items-center space-x-2 self-end sm:self-auto shrink-0">
+                    <Link
+                      href={`/admin/forms/${form.id}?tab=responses`}
+                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-sm"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{form.responseCount}건 응답 보기</span>
+                    </Link>
 
                     {canEditForm && (
                       <Link
                         href={`/admin/forms/${form.id}/edit`}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition"
+                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
                       >
                         편집
                       </Link>
