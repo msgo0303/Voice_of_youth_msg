@@ -19,7 +19,12 @@ import {
   MessageSquare,
   Share2,
   Download,
-  UserCheck
+  BarChart3,
+  Star,
+  PieChart,
+  ListFilter,
+  CheckCircle2,
+  FileSpreadsheet
 } from 'lucide-react';
 
 interface ResponseDetail {
@@ -40,12 +45,31 @@ interface ResponseDetail {
   }>;
 }
 
+interface AnalyticsData {
+  summary: {
+    total_responses: number;
+    overall_avg_satisfaction: number | null;
+  };
+  question_analytics: Array<{
+    question_id: string;
+    title: string;
+    type: string;
+    answered_count: number;
+    option_breakdown?: Array<{ option: string; count: number; percentage: number }>;
+    average_score?: number;
+    score_distribution?: Array<{ score: number; count: number; percentage: number }>;
+    reasons?: Array<{ user_name: string; score: number; reason: string; submitted_at: string }>;
+    recent_text_answers?: Array<{ user_name: string; username?: string | null; text: string; submitted_at: string }>;
+  }>;
+}
+
 export default function AdminFormDetailPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
   const formId = params.id as string;
-  const initialTab = searchParams.get('tab') === 'responses' ? 'responses' : 'info';
+  const initialTab = (searchParams.get('tab') as 'info' | 'responses' | 'analytics') || 'info';
+
   const { role, initData, telegramUserId, user } = useTelegramAuth();
 
   const [form, setForm] = useState<Form & { responseCount: number } | null>(null);
@@ -54,14 +78,20 @@ export default function AdminFormDetailPage() {
   const [copiedType, setCopiedType] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Tabs & Responses State
-  const [activeTab, setActiveTab] = useState<'info' | 'responses'>(initialTab);
+  // Tabs & States
+  const [activeTab, setActiveTab] = useState<'info' | 'responses' | 'analytics'>(initialTab);
   const [responses, setResponses] = useState<ResponseDetail[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [responsesError, setResponsesError] = useState<string | null>(null);
+
+  // Analytics State
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+
   const [statusUpdating, setStatusUpdating] = useState(false);
 
-  // Topic binding state for existing surveys
+  // Topic binding state
   const [topicChatIdInput, setTopicChatIdInput] = useState('');
   const [topicIdInput, setTopicIdInput] = useState('');
   const [topicSaving, setTopicSaving] = useState(false);
@@ -100,6 +130,24 @@ export default function AdminFormDetailPage() {
     }
   };
 
+  const fetchAnalytics = async () => {
+    setLoadingAnalytics(true);
+    setAnalyticsError(null);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}/analytics`, { headers: getAuthHeaders() });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setAnalytics(json);
+      } else {
+        setAnalyticsError(json.error || '통계 데이터를 계산하지 못했습니다.');
+      }
+    } catch (err: any) {
+      setAnalyticsError(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
   useEffect(() => {
     async function fetchFormDetail() {
       try {
@@ -124,6 +172,7 @@ export default function AdminFormDetailPage() {
     if (formId) {
       fetchFormDetail();
       fetchResponses();
+      fetchAnalytics();
     }
   }, [formId, initData, telegramUserId, user?.id]);
 
@@ -203,13 +252,30 @@ export default function AdminFormDetailPage() {
 
     responses.forEach((resp, rIdx) => {
       exportText += `[응답 #${rIdx + 1}] ${resp.telegram_first_name || '이용자'}${resp.telegram_username ? ` (@${resp.telegram_username})` : ''} | ${new Date(resp.submitted_at).toLocaleString('ko-KR')}\n`;
-      resp.answers.forEach((ans) => {
-        exportText += `  • ${ans.question_snapshot.title}: ${ans.answer_value || '(응답 없음)'}\n`;
+      resp.answers?.forEach((ans) => {
+        exportText += `  • ${ans.question_snapshot?.title || '질문'}: ${ans.answer_value || '(응답 없음)'}\n`;
       });
       exportText += `------------------------------------\n\n`;
     });
 
     handleCopy(exportText, 'all_responses');
+  };
+
+  const handleDownloadCsv = () => {
+    if (typeof window === 'undefined') return;
+    window.open(`/api/admin/forms/${formId}/export`, '_blank');
+  };
+
+  const handleDownloadJson = () => {
+    if (!analytics) return;
+    const jsonStr = JSON.stringify(analytics, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `FormGram_analytics_${formId}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const tgUrl = getTelegramMiniAppUrl(formId);
@@ -253,68 +319,131 @@ export default function AdminFormDetailPage() {
           </button>
           <div>
             <div className="flex items-center space-x-2">
-              <select
-                value={form.status}
-                disabled={isViewOnly || statusUpdating}
-                onChange={(e) => handleStatusChange(e.target.value as FormStatus)}
-                className={`text-xs font-extrabold px-2.5 py-1 rounded-full uppercase border focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${
+              <h1 className="text-lg font-extrabold text-slate-900">{form.title}</h1>
+              <span
+                className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
                   form.status === 'ACTIVE'
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    ? 'bg-emerald-100 text-emerald-800'
                     : form.status === 'CLOSED'
-                    ? 'bg-slate-100 text-slate-700 border-slate-300'
-                    : 'bg-amber-100 text-amber-800 border-amber-300'
+                    ? 'bg-slate-100 text-slate-700'
+                    : 'bg-amber-100 text-amber-800'
                 }`}
               >
-                <option value="ACTIVE">● ACTIVE (진행중)</option>
-                <option value="CLOSED">🔒 CLOSED (마감)</option>
-                <option value="ARCHIVED">📦 ARCHIVED (보관)</option>
-              </select>
-              <h1 className="text-lg font-bold text-slate-900 leading-tight">{form.title}</h1>
+                {form.status}
+              </span>
             </div>
-            <p className="text-xs text-slate-500 mt-1">설문 관리 및 응답 내용 확인</p>
+            <p className="text-xs text-slate-500 mt-0.5">생성일: {new Date(form.created_at).toLocaleDateString('ko-KR')}</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 self-end sm:self-auto">
+        {/* Action Controls */}
+        <div className="flex items-center space-x-2">
           {!isViewOnly && (
-            <Link
-              href={`/admin/forms/${form.id}/edit`}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs rounded-xl transition"
+            <button
+              onClick={() => router.push(`/admin/forms/${form.id}/edit`)}
+              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>편집</span>
-            </Link>
+              <span>설문 편집</span>
+            </button>
           )}
+
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+            {(['ACTIVE', 'CLOSED', 'ARCHIVED'] as FormStatus[]).map((st) => (
+              <button
+                key={st}
+                disabled={isViewOnly || statusUpdating}
+                onClick={() => handleStatusChange(st)}
+                className={`px-2.5 py-1 text-[11px] font-bold rounded-lg transition ${
+                  form.status === st
+                    ? 'bg-white text-blue-700 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Main View Navigation Tabs */}
-      <div className="flex space-x-2 border-b border-slate-200">
+      {/* Overview Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 font-semibold">총 응답 수</p>
+            <p className="text-xl font-extrabold text-slate-900">{analytics?.summary.total_responses || responses.length}건</p>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+            <Star className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 font-semibold">평균 만족도 점수</p>
+            <p className="text-xl font-extrabold text-indigo-900">
+              {analytics?.summary.overall_avg_satisfaction ? `${analytics.summary.overall_avg_satisfaction} / 5.0` : '평가 정보 없음'}
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 font-semibold">총 문항 수</p>
+            <p className="text-xl font-extrabold text-slate-900">{questions.length}개 문항</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs Header */}
+      <div className="flex items-center space-x-2 border-b border-slate-200 pb-1">
         <button
           onClick={() => setActiveTab('info')}
-          className={`px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 ${
             activeTab === 'info'
-              ? 'border-blue-600 text-blue-600 bg-white shadow-sm rounded-t-xl'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <Share2 className="w-4 h-4" />
           <span>설문 정보 & 공유 링크</span>
         </button>
 
         <button
           onClick={() => {
             setActiveTab('responses');
-            if (responses.length === 0) fetchResponses();
+            fetchResponses();
           }}
-          className={`px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 transition flex items-center space-x-2 ${
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 ${
             activeTab === 'responses'
-              ? 'border-blue-600 text-blue-600 bg-white shadow-sm rounded-t-xl'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
-          <span>제출된 답변 목록 ({form.responseCount}건)</span>
+          <span>개별 응답 목록 ({responses.length}건)</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('analytics');
+            fetchAnalytics();
+          }}
+          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 ${
+            activeTab === 'analytics'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>통계 시각화 및 분석</span>
         </button>
       </div>
 
@@ -323,199 +452,123 @@ export default function AdminFormDetailPage() {
         <div className="space-y-6">
           {/* Share Links Card */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
+            <h3 className="font-extrabold text-slate-900 text-sm flex items-center space-x-1.5">
               <Share2 className="w-4 h-4 text-blue-600" />
-              <span>설문 응답 링크 복사 및 공유</span>
-            </div>
+              <span>설문 공유 및 참여 링크</span>
+            </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Telegram Mini App Link */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                  <span>📱 텔레그램 미니앱 링크</span>
-                  <span className="text-[10px] text-blue-600 font-medium">텔레그램 인앱 전용</span>
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={tgUrl}
-                  className="w-full bg-white border border-slate-200 rounded-lg text-xs px-3 py-2 text-slate-700 font-mono focus:outline-none"
-                />
-                <button
-                  onClick={() => handleCopy(tgUrl, 'tg')}
-                  className={`w-full py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 border ${
-                    copiedType === 'tg'
-                      ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'
-                  }`}
-                >
-                  {copiedType === 'tg' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedType === 'tg' ? '텔레그램 링크 복사됨!' : '텔레그램 링크 복사'}</span>
-                </button>
-              </div>
-
-              {/* Web Survey Link */}
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-                <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                  <span>🌐 웹 브라우저 직접 링크</span>
-                  <span className="text-[10px] text-slate-500 font-medium">모든 브라우저 가능</span>
-                </label>
-                <input
-                  type="text"
-                  readOnly
-                  value={webUrl}
-                  className="w-full bg-white border border-slate-200 rounded-lg text-xs px-3 py-2 text-slate-700 font-mono focus:outline-none"
-                />
-                <div className="flex items-center space-x-2">
+            <div className="space-y-3">
+              {/* Telegram Deep Link */}
+              <div className="p-3.5 bg-blue-50/60 rounded-xl border border-blue-100 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-blue-900">📱 텔레그램 미니앱 전용 딥링크</span>
                   <button
-                    onClick={() => handleCopy(webUrl, 'web')}
-                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center space-x-1.5 border ${
-                      copiedType === 'web'
-                        ? 'bg-emerald-600 text-white border-emerald-600'
-                        : 'bg-slate-700 text-white hover:bg-slate-800 border-slate-700'
-                    }`}
+                    onClick={() => handleCopy(tgUrl, 'tg')}
+                    className="text-[11px] font-bold text-blue-700 hover:text-blue-900 flex items-center space-x-1"
                   >
-                    {copiedType === 'web' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedType === 'web' ? '웹 링크 복사됨!' : '웹 링크 복사'}</span>
+                    {copiedType === 'tg' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedType === 'tg' ? '복사됨' : '링크 복사'}</span>
                   </button>
-                  <a
-                    href={webUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg text-xs font-bold flex items-center justify-center"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Telegram Notification Topic Settings Card */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
-                <MessageSquare className="w-4 h-4 text-blue-600" />
-                <span>📌 텔레그램 응답 알림 토픽 연동 설정</span>
-              </div>
-              {topicSaveSuccess && (
-                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                  ✓ 토픽 연동 저장 완료!
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500">
-              이 설문에 새로운 응답이 제출되면 지정한 텔레그램 그룹 Chat ID와 토픽 ID(Thread ID)로 실시간 알림이 발송됩니다. (기존 생성된 설문도 자유롭게 변경/연동 가능)
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  텔레그램 그룹 Chat ID
-                </label>
-                <input
-                  type="text"
-                  placeholder="예: -1003721720880"
-                  value={topicChatIdInput}
-                  onChange={(e) => setTopicChatIdInput(e.target.value)}
-                  disabled={isViewOnly || topicSaving}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                />
+                <p className="text-xs font-mono text-slate-600 break-all bg-white p-2 rounded-lg border border-blue-200/50">
+                  {tgUrl}
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">
-                  토픽 ID (Thread ID)
-                </label>
-                <input
-                  type="text"
-                  placeholder="예: 2 (일반 채팅방은 빈칸)"
-                  value={topicIdInput}
-                  onChange={(e) => setTopicIdInput(e.target.value)}
-                  disabled={isViewOnly || topicSaving}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                />
-              </div>
-            </div>
-
-            {!isViewOnly && (
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSaveTopicSetting}
-                  disabled={topicSaving}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1.5 shadow-sm"
-                >
-                  {topicSaving ? '저장 중...' : '토픽 연동 설정 저장'}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Meta Stats Overview */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-              <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <Users className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">총 제출 응답 수</p>
-                <p className="text-lg font-extrabold text-slate-900">{form.responseCount}건</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">질문 개수</p>
-                <p className="text-lg font-extrabold text-slate-900">{questions.length}개</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
-              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
-                <Calendar className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">설문 생성일</p>
-                <p className="text-xs font-bold text-slate-900 pt-0.5">
-                  {new Date(form.created_at).toLocaleDateString('ko-KR')}
+              {/* Web Link */}
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/70 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-800">🌐 일반 웹 브라우저 접속 링크</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleCopy(webUrl, 'web')}
+                      className="text-[11px] font-bold text-slate-700 hover:text-slate-900 flex items-center space-x-1"
+                    >
+                      {copiedType === 'web' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{copiedType === 'web' ? '복사됨' : '링크 복사'}</span>
+                    </button>
+                    <a
+                      href={`/survey/${form.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-bold text-blue-600 hover:underline flex items-center space-x-0.5"
+                    >
+                      <span>열기</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                </div>
+                <p className="text-xs font-mono text-slate-600 break-all bg-white p-2 rounded-lg border border-slate-200">
+                  {webUrl}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Questions Preview */}
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
-              <FileText className="w-4 h-4 text-slate-500" />
-              <span>포함된 질문 목록 ({questions.length}개)</span>
-            </h3>
+          {/* Topic Binding Editor */}
+          {!isViewOnly && (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-sm">텔레그램 그룹/토픽 알림 연동</h3>
+                <p className="text-xs text-slate-500">답변 제출 시 실시간 수신할 텔레그램 그룹 Chat ID 및 Topic ID를 설정합니다.</p>
+              </div>
 
-            <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Chat ID (그룹 채팅방 ID)</label>
+                  <input
+                    type="text"
+                    placeholder="-1003721720880"
+                    value={topicChatIdInput}
+                    onChange={(e) => setTopicChatIdInput(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Topic ID (포럼 토픽 번호)</label>
+                  <input
+                    type="number"
+                    placeholder="2"
+                    value={topicIdInput}
+                    onChange={(e) => setTopicIdInput(e.target.value)}
+                    className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                {topicSaveSuccess ? (
+                  <span className="text-xs font-bold text-emerald-600 flex items-center space-x-1">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>연동 설정이 성공적으로 저장되었습니다!</span>
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-slate-400">비워둘 경우 기본 청년회의 소리 그룹 토픽으로 자동 발송됩니다.</span>
+                )}
+
+                <button
+                  onClick={handleSaveTopicSetting}
+                  disabled={topicSaving}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition disabled:opacity-50"
+                >
+                  {topicSaving ? '저장 중...' : '연동 설정 저장'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Form Questions Overview */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h3 className="font-extrabold text-slate-900 text-sm">설문 질문 구성 ({questions.length}개)</h3>
+            <div className="space-y-3">
               {questions.map((q, idx) => (
-                <div key={q.id || idx} className="p-4 space-y-1.5 bg-slate-50/40">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-bold text-slate-500">Q{idx + 1}.</span>
-                      <span className="text-sm font-bold text-slate-900">{q.title}</span>
-                      {q.required && <span className="text-[10px] text-red-500 font-bold">*필수</span>}
-                    </div>
-                    <span className="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md">
-                      {q.type}
-                    </span>
+                <div key={q.id} className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/60 space-y-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+                    <span>Q{idx + 1}. {q.title}</span>
+                    <span className="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-mono">{q.type}</span>
                   </div>
-                  {q.description && <p className="text-xs text-slate-500 pl-6">{q.description}</p>}
-                  {Array.isArray(q.options) && q.options.length > 0 && (
-                    <div className="pl-6 pt-1 flex flex-wrap gap-1.5">
-                      {q.options.map((opt, optIdx) => (
-                        <span key={optIdx} className="text-xs bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-700">
-                          {opt}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {q.description && <p className="text-xs text-slate-500">{q.description}</p>}
                 </div>
               ))}
             </div>
@@ -523,85 +576,220 @@ export default function AdminFormDetailPage() {
         </div>
       )}
 
-      {/* TAB 2: SUBMITTED RESPONSES VIEWER */}
+      {/* TAB 2: INDIVIDUAL RESPONSES FEED */}
       {activeTab === 'responses' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 text-sm flex items-center space-x-2">
-              <UserCheck className="w-4 h-4 text-blue-600" />
-              <span>제출된 전체 응답 ({responses.length}건)</span>
-            </h3>
-
-            {responses.length > 0 && (
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">제출된 답변 목록</h3>
+              <p className="text-xs text-slate-500">실시간으로 접수된 총 {responses.length}건의 개별 응답입니다.</p>
+            </div>
+            <div className="flex items-center space-x-2">
               <button
                 onClick={handleCopyAllResponses}
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center space-x-1.5"
+                disabled={responses.length === 0}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center space-x-1 transition disabled:opacity-50"
               >
-                {copiedType === 'all_responses' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedType === 'all_responses' ? '전체 답변 복사됨!' : '전체 답변 텍스트 복사'}</span>
+                <Copy className="w-3.5 h-3.5 text-slate-600" />
+                <span>{copiedType === 'all_responses' ? '복사 완료' : '전체 복사'}</span>
               </button>
-            )}
+              <button
+                onClick={handleDownloadCsv}
+                disabled={responses.length === 0}
+                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1 shadow-sm transition disabled:opacity-50"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>CSV 내보내기</span>
+              </button>
+            </div>
           </div>
 
-          {responsesError && (
-            <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl">
-              ⚠️ {responsesError}
-            </div>
-          )}
-
           {loadingResponses ? (
-            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-sm text-slate-500">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              제출된 응답 목록을 불러오는 중입니다...
+            <div className="p-8 text-center text-xs text-slate-500">응답 목록을 불러오는 중...</div>
+          ) : responses.length === 0 ? (
+            <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs font-medium">
+              아직 제출된 응답이 없습니다.
             </div>
-          ) : responses.length > 0 ? (
+          ) : (
             <div className="space-y-4">
-              {responses.map((resp, idx) => (
-                <div key={resp.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
-                  {/* Respondent Info Header */}
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div className="flex items-center space-x-2.5">
-                      <span className="w-7 h-7 rounded-full bg-blue-100 text-blue-800 text-xs font-black flex items-center justify-center">
-                        #{responses.length - idx}
+              {responses.map((resp, rIdx) => (
+                <div key={resp.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-extrabold text-xs text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                        #{responses.length - rIdx}
                       </span>
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-slate-900 text-sm">
-                            {resp.telegram_first_name || '이용자'}
-                          </span>
-                          {resp.telegram_username && (
-                            <span className="text-xs text-blue-600 font-medium">
-                              @{resp.telegram_username}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[10px] text-slate-400">
-                          ID: {resp.telegram_user_id} | 제출일: {new Date(resp.submitted_at).toLocaleString('ko-KR')}
-                        </p>
-                      </div>
+                      <span className="font-bold text-xs text-slate-900">
+                        {resp.telegram_first_name || '이용자'}
+                        {resp.telegram_username && ` (@${resp.telegram_username})`}
+                      </span>
                     </div>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {new Date(resp.submitted_at).toLocaleString('ko-KR')}
+                    </span>
                   </div>
 
-                  {/* Submitted Answers Stream */}
-                  <div className="space-y-3 bg-slate-50/70 p-4 rounded-xl border border-slate-200">
-                    {resp.answers.map((ans, aIdx) => (
-                      <div key={ans.id || aIdx} className="space-y-1">
+                  <div className="space-y-2 pt-1">
+                    {resp.answers?.map((ans, aIdx) => (
+                      <div key={aIdx} className="bg-slate-50 p-3 rounded-xl space-y-1">
                         <p className="text-xs font-bold text-slate-800">
-                          Q. {ans.question_snapshot.title}
+                          • {ans.question_snapshot?.title || '질문'}
                         </p>
-                        <div className="text-xs text-slate-700 bg-white px-3 py-2 rounded-lg border border-slate-200 font-medium whitespace-pre-wrap">
-                          ↳ {ans.answer_value || '(응답 없음)'}
-                        </div>
+                        <p className="text-xs text-blue-900 bg-white p-2.5 rounded-lg border border-slate-200 font-medium">
+                          {ans.answer_value || '(응답 없음)'}
+                        </p>
                       </div>
                     ))}
                   </div>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: STATISTICAL ANALYTICS & VISUALIZATIONS */}
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {/* Header Action Bar */}
+          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">질문별 통계 시각화 및 집계 분석</h3>
+              <p className="text-xs text-slate-500">객관식 비율, 만족도 평균 점수 및 세부 사유 분석 결과입니다.</p>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleDownloadCsv}
+                disabled={!analytics || analytics.summary.total_responses === 0}
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow-sm transition disabled:opacity-50"
+              >
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>CSV 엑셀 내보내기</span>
+              </button>
+
+              <button
+                onClick={handleDownloadJson}
+                disabled={!analytics || analytics.summary.total_responses === 0}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition disabled:opacity-50"
+              >
+                <Download className="w-4 h-4 text-slate-600" />
+                <span>JSON 데이터</span>
+              </button>
+            </div>
+          </div>
+
+          {loadingAnalytics ? (
+            <div className="p-12 text-center text-xs text-slate-500">통계 데이터를 계산 중입니다...</div>
+          ) : analyticsError || !analytics ? (
+            <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 text-rose-600 text-xs font-bold">
+              {analyticsError || '통계 데이터를 불러오지 못했습니다.'}
+            </div>
           ) : (
-            <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500 space-y-2">
-              <MessageSquare className="w-10 h-10 text-slate-300 mx-auto" />
-              <p className="font-semibold text-sm">아직 제출된 응답이 없습니다.</p>
+            <div className="space-y-6">
+              {analytics.question_analytics.map((qa, qIdx) => (
+                <div key={qa.question_id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-extrabold text-sm text-slate-900">
+                          Q{qIdx + 1}. {qa.title}
+                        </span>
+                        <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                          {qa.type}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">총 {qa.answered_count}명 응답 완료</p>
+                    </div>
+
+                    {qa.average_score !== undefined && (
+                      <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-xl text-center">
+                        <span className="text-[10px] font-bold text-indigo-700 block">평균 점수</span>
+                        <span className="text-base font-extrabold text-indigo-900">{qa.average_score} / 5.0</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Render Option Breakdown Bars (SINGLE_CHOICE, MULTIPLE_CHOICE, DROPDOWN) */}
+                  {qa.option_breakdown && (
+                    <div className="space-y-3 pt-1">
+                      {qa.option_breakdown.map((opt, oIdx) => (
+                        <div key={oIdx} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
+                            <span>{opt.option}</span>
+                            <span className="font-mono text-blue-700 font-bold">
+                              {opt.count}명 ({opt.percentage}%)
+                            </span>
+                          </div>
+                          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-600 rounded-full transition-all duration-500"
+                              style={{ width: `${opt.percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Render Rating Score Distribution Bars (LINEAR_SCALE, SATISFACTION) */}
+                  {qa.score_distribution && (
+                    <div className="space-y-3 pt-1">
+                      <div className="grid grid-cols-5 gap-2 pb-2">
+                        {qa.score_distribution.map((sd) => (
+                          <div key={sd.score} className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center space-y-1">
+                            <span className="text-xs font-bold text-slate-700 block">{sd.score}점</span>
+                            <span className="text-sm font-extrabold text-indigo-900 block">{sd.count}명</span>
+                            <span className="text-[10px] text-slate-500 font-mono block">{sd.percentage}%</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Reason list for Satisfaction ratings */}
+                      {qa.reasons && qa.reasons.length > 0 && (
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                          <h4 className="text-xs font-bold text-indigo-900">작성된 평가 사유 목록 ({qa.reasons.length}건)</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {qa.reasons.map((r, rIdx) => (
+                              <div key={rIdx} className="p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1">
+                                <div className="flex items-center justify-between text-[11px]">
+                                  <span className="font-bold text-indigo-950">{r.user_name} ({r.score}점)</span>
+                                  <span className="text-slate-400 font-mono">{new Date(r.submitted_at).toLocaleDateString('ko-KR')}</span>
+                                </div>
+                                <p className="text-xs text-slate-800 leading-relaxed font-medium">{r.reason}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Render Recent Text Feed (SHORT_TEXT, LONG_TEXT) */}
+                  {qa.recent_text_answers && (
+                    <div className="space-y-2 pt-1">
+                      <h4 className="text-xs font-bold text-slate-800">최근 응답 피드 ({qa.recent_text_answers.length}건)</h4>
+                      {qa.recent_text_answers.length === 0 ? (
+                        <p className="text-xs text-slate-400 py-2">작성된 응답이 없습니다.</p>
+                      ) : (
+                        <div className="space-y-2 max-h-56 overflow-y-auto">
+                          {qa.recent_text_answers.map((ans, tIdx) => (
+                            <div key={tIdx} className="p-3 bg-slate-50 rounded-xl border border-slate-200/80 space-y-1">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="font-bold text-slate-900">{ans.user_name}{ans.username && ` (@${ans.username})`}</span>
+                                <span className="text-slate-400 font-mono">{new Date(ans.submitted_at).toLocaleDateString('ko-KR')}</span>
+                              </div>
+                              <p className="text-xs text-blue-900 bg-white p-2 rounded-lg border border-slate-200 font-medium">
+                                {ans.text}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </div>
