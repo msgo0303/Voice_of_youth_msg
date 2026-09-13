@@ -64,7 +64,7 @@ export async function POST(
       return NextResponse.json({ error: '질문 목록을 불러올 수 없습니다.' }, { status: 400 });
     }
 
-    const questions = rawQuestions.map(q => decodeQuestionFromDb(q));
+    const questions = rawQuestions.map((q: any) => decodeQuestionFromDb(q));
 
     // 4. Validate required answers
     const missingQuestions: string[] = [];
@@ -102,7 +102,7 @@ export async function POST(
     }
 
     // 6. Create Answer rows in response_answers with question_snapshot (Immutability guaranteed)
-    const answerRows = questions.map((q) => {
+    const answerRows = questions.map((q: any) => {
       const snapshot: QuestionSnapshot = {
         title: q.title,
         description: q.description || null,
@@ -163,7 +163,7 @@ export async function POST(
       messageText += `👤 <b>응답자</b>: ${escapeHtml(user.first_name || '이용자')}${user.username ? ` (@${escapeHtml(user.username)})` : ''}\n`;
       messageText += `🕒 <b>일시</b>: ${new Date().toLocaleString('ko-KR')}\n\n`;
 
-      questions.forEach((q, idx) => {
+      questions.forEach((q: any, idx: number) => {
         const ansVal = answers[q.id] || '(응답 없음)';
         messageText += `<b>Q${idx + 1}. ${escapeHtml(q.title)}</b>\n↳ ${escapeHtml(ansVal)}\n\n`;
       });

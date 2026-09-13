@@ -40,7 +40,7 @@ export async function GET(
     }
 
     // Decode questions DB constraints to UI types
-    const decodedQuestions = (questions || []).map(q => decodeQuestionFromDb(q));
+    const decodedQuestions = (questions || []).map((q: any) => decodeQuestionFromDb(q));
 
     // 3. Fetch response count
     const { count } = await supabase
