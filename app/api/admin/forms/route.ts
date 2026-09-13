@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const formsWithCounts = (forms || []).map((form) => ({
+    const formsWithCounts = ((forms as any[]) || []).map((form) => ({
       ...form,
       responseCount: countsMap[form.id] || 0
     }));

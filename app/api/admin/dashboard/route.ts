@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
       }
     });
 
-    const formStats = (activeForms || []).map((form) => ({
+    const formStats = ((activeForms as any[]) || []).map((form) => ({
       ...form,
       responseCount: countsMap[form.id] || 0
     }));
