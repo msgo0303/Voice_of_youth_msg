@@ -29,6 +29,7 @@ export default function UserSurveyPage() {
 
   // Environment state
   const [isTelegramWebview, setIsTelegramWebview] = useState<boolean>(true);
+  const [allowWebDirect, setAllowWebDirect] = useState<boolean>(false);
 
   // UI Flow states
   const [loading, setLoading] = useState(true);
@@ -165,7 +166,7 @@ export default function UserSurveyPage() {
   };
 
   // Step 8: External Browser Smart Fallback Notice
-  if (!isTelegramWebview) {
+  if (!isTelegramWebview && !allowWebDirect) {
     const miniAppUrl = getTelegramMiniAppUrl(formId);
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
@@ -175,21 +176,30 @@ export default function UserSurveyPage() {
           </div>
 
           <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-slate-900">이 설문은 Telegram에서 이용할 수 있습니다</h2>
+            <h2 className="text-xl font-extrabold text-slate-900">Telegram 및 웹 설문 참여</h2>
             <p className="text-xs text-slate-500 leading-relaxed">
-              안전한 사용자 인증과 원활한 응답 제출을 위해 Telegram 앱 내 Mini App에서 설문이 실행됩니다.
+              Telegram 앱 내 Mini App에서 빠르게 접속하시거나 웹 브라우저에서 바로 설문에 응답하실 수 있습니다.
             </p>
           </div>
 
-          <a
-            href={miniAppUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition"
-          >
-            <span>Telegram에서 열기</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          <div className="space-y-2.5">
+            <a
+              href={miniAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition"
+            >
+              <span>📱 Telegram 앱에서 열기</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+
+            <button
+              onClick={() => setAllowWebDirect(true)}
+              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-2xl font-bold text-xs transition"
+            >
+              🌐 웹 브라우저에서 바로 작성하기
+            </button>
+          </div>
         </div>
       </div>
     );
