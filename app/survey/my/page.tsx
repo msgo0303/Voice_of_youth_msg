@@ -13,7 +13,8 @@ import {
   X,
   AlertCircle,
   FileText,
-  History
+  History,
+  PlusCircle
 } from 'lucide-react';
 
 interface ResponseItem {
@@ -33,6 +34,7 @@ interface ResponseItem {
 }
 
 interface AnswerDetail {
+  id: string;
   question_id: string;
   answer_value: string;
   question_snapshot: {
@@ -83,7 +85,7 @@ export default function UserMyResponsesPage() {
     setAnswerDetails([]);
 
     try {
-      const res = await fetch(`/api/survey/${resp.form_id}/submit`, {
+      const res = await fetch(`/api/survey/response/${resp.id}`, {
         headers: { 'x-telegram-init-data': initData }
       });
       const json = await res.json();
@@ -127,7 +129,7 @@ export default function UserMyResponsesPage() {
         <div className="flex items-center justify-between pt-2">
           <div>
             <h1 className="text-lg font-extrabold text-slate-900">내가 참여한 설문</h1>
-            <p className="text-xs text-slate-500">본인 텔레그램 계정으로 제출한 응답 목록입니다.</p>
+            <p className="text-xs text-slate-500">본인 텔레그램 계정으로 제출한 모든 응답 이력입니다.</p>
           </div>
           <span className="text-xs font-bold bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
             총 {responses.length}건
@@ -163,9 +165,14 @@ export default function UserMyResponsesPage() {
               >
                 {/* Form Title & Status */}
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-bold text-slate-900 text-base leading-snug">
-                    {form?.title || '제목 없음'}
-                  </h3>
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-slate-900 text-base leading-snug">
+                      {form?.title || '제목 없음'}
+                    </h3>
+                    <p className="text-[11px] font-mono text-slate-400">
+                      응답 ID: #{resp.id.slice(0, 8)}
+                    </p>
+                  </div>
                   <span
                     className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full shrink-0 ${
                       isActive
@@ -177,17 +184,17 @@ export default function UserMyResponsesPage() {
                   </span>
                 </div>
 
-                {/* Submitted Badges */}
+                {/* Submitted Badges & Timestamp */}
                 <div className="flex flex-wrap items-center gap-2 text-xs">
                   <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200/60">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>제출 완료</span>
+                    <span>제출: {new Date(resp.submitted_at).toLocaleString('ko-KR')}</span>
                   </span>
 
                   {resp.is_edited && (
                     <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-semibold border border-blue-200/60">
                       <Edit3 className="w-3.5 h-3.5 text-blue-600" />
-                      <span>수정됨 ({new Date(resp.updated_at).toLocaleDateString('ko-KR')})</span>
+                      <span>수정됨 ({new Date(resp.updated_at).toLocaleString('ko-KR')})</span>
                     </span>
                   )}
                 </div>
@@ -211,35 +218,50 @@ export default function UserMyResponsesPage() {
                 {!isActive && (
                   <div className="bg-amber-50/70 border border-amber-200/60 rounded-xl p-2.5 px-3 flex items-center space-x-2 text-xs text-amber-800">
                     <Lock className="w-3.5 h-3.5 shrink-0 text-amber-600" />
-                    <span>설문이 마감되어 응답 수정이 불가능합니다.</span>
+                    <span>설문이 공식 마감되어 응답 수정 및 새로 제출이 불가능합니다.</span>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    onClick={() => handleOpenDetailModal(resp)}
-                    className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition"
-                  >
-                    <Eye className="w-4 h-4 text-slate-500" />
-                    <span>응답 상세 보기</span>
-                  </button>
-
-                  {isActive ? (
+                {/* Action Buttons Grid (Requirement 2) */}
+                <div className="space-y-2 pt-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Action A: 응답 상세 보기 */}
                     <button
-                      onClick={() => router.push(`/survey/${form.id}?edit=true`)}
-                      className="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition"
+                      onClick={() => handleOpenDetailModal(resp)}
+                      className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition"
                     >
-                      <Edit3 className="w-4 h-4" />
-                      <span>수정하기</span>
+                      <Eye className="w-4 h-4 text-slate-500" />
+                      <span>응답 상세 보기</span>
                     </button>
-                  ) : (
+
+                    {/* Action B: 응답 수정 */}
+                    {isActive ? (
+                      <button
+                        onClick={() => router.push(`/survey/${form.id}?response_id=${resp.id}`)}
+                        className="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 shadow-sm transition"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        <span>응답 수정</span>
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="py-2.5 px-3 bg-slate-100 text-slate-400 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 cursor-not-allowed opacity-60"
+                      >
+                        <Lock className="w-4 h-4" />
+                        <span>수정 불가</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Action C: 새로 제출 (Form 이 활성 상태일 때만) */}
+                  {isActive && (
                     <button
-                      disabled
-                      className="py-2.5 px-3 bg-slate-100 text-slate-400 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 cursor-not-allowed opacity-60"
+                      onClick={() => router.push(`/survey/${form.id}`)}
+                      className="w-full py-2 bg-slate-50 hover:bg-slate-100 text-blue-700 border border-slate-200 rounded-xl font-bold text-xs flex items-center justify-center space-x-1.5 transition"
                     >
-                      <Lock className="w-4 h-4" />
-                      <span>수정 불가</span>
+                      <PlusCircle className="w-4 h-4 text-blue-600" />
+                      <span>새로운 응답 추가 제출하기</span>
                     </button>
                   )}
                 </div>
@@ -270,9 +292,9 @@ export default function UserMyResponsesPage() {
             {/* Modal Scrollable Body */}
             <div className="p-5 overflow-y-auto space-y-4 flex-1">
               <div className="bg-slate-50 p-3 rounded-xl flex items-center justify-between text-xs text-slate-500 font-mono">
-                <span>응답 제출일: {new Date(selectedResponse.submitted_at).toLocaleString('ko-KR')}</span>
+                <span>제출일: {new Date(selectedResponse.submitted_at).toLocaleString('ko-KR')}</span>
                 {selectedResponse.is_edited && (
-                  <span className="text-blue-600 font-bold font-sans">수정됨</span>
+                  <span className="text-blue-600 font-bold font-sans">수정됨 ({new Date(selectedResponse.updated_at).toLocaleTimeString('ko-KR')})</span>
                 )}
               </div>
 

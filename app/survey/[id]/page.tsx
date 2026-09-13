@@ -19,7 +19,7 @@ export default function UserSurveyPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const formId = params.id as string;
-  const isEditQuery = searchParams.get('edit') === 'true';
+  const targetResponseId = searchParams.get('response_id');
 
   const { isAuthenticated, initData } = useTelegramAuth();
 
@@ -38,7 +38,7 @@ export default function UserSurveyPage() {
   const [submittedResponse, setSubmittedResponse] = useState<{ id: string; message: string } | null>(null);
 
   useEffect(() => {
-    async function fetchPublicFormAndResponse() {
+    async function fetchFormAndTargetResponse() {
       try {
         // 1. Fetch Form & Questions
         const res = await fetch(`/api/admin/forms/${formId}`, {
@@ -54,31 +54,34 @@ export default function UserSurveyPage() {
           return;
         }
 
-        // 2. Fetch Existing Response for this user if available
-        const respRes = await fetch(`/api/survey/${formId}/submit`, {
-          headers: { 'x-telegram-init-data': initData }
-        });
-        const respJson = await respRes.json();
-        if (respRes.ok && respJson.response?.response_answers) {
-          const existingAnswersMap: Record<string, string> = {};
-          const existingReasonsMap: Record<string, string> = {};
-
-          respJson.response.response_answers.forEach((ans: any) => {
-            existingAnswersMap[ans.question_id] = ans.answer_value;
-
-            if (ans.answer_value.includes(' - 사유: ')) {
-              const parts = ans.answer_value.split(' - 사유: ');
-              if (parts[1]) {
-                existingReasonsMap[ans.question_id] = parts[1];
-              }
-            }
+        // 2. Fetch specific target response for editing if response_id is passed
+        if (targetResponseId) {
+          const respRes = await fetch(`/api/survey/response/${targetResponseId}`, {
+            headers: { 'x-telegram-init-data': initData }
           });
+          const respJson = await respRes.json();
 
-          setAnswers(existingAnswersMap);
-          setSatisfactionReasons(existingReasonsMap);
-          setIsEditMode(true);
-        } else if (isEditQuery) {
-          setIsEditMode(true);
+          if (respRes.ok && respJson.response?.response_answers) {
+            const existingAnswersMap: Record<string, string> = {};
+            const existingReasonsMap: Record<string, string> = {};
+
+            respJson.response.response_answers.forEach((ans: any) => {
+              existingAnswersMap[ans.question_id] = ans.answer_value;
+
+              if (ans.answer_value.includes(' - 사유: ')) {
+                const parts = ans.answer_value.split(' - 사유: ');
+                if (parts[1]) {
+                  existingReasonsMap[ans.question_id] = parts[1];
+                }
+              }
+            });
+
+            setAnswers(existingAnswersMap);
+            setSatisfactionReasons(existingReasonsMap);
+            setIsEditMode(true);
+          } else {
+            setValidationError(respJson.error || '수정할 응답 정보를 불러올 수 없습니다.');
+          }
         }
       } catch (err: any) {
         setValidationError(err.message || '네트워크 오류가 발생했습니다.');
@@ -88,9 +91,9 @@ export default function UserSurveyPage() {
     }
 
     if (formId) {
-      fetchPublicFormAndResponse();
+      fetchFormAndTargetResponse();
     }
-  }, [formId, initData, isEditQuery]);
+  }, [formId, initData, targetResponseId]);
 
   const handleSingleAnswerChange = (questionId: string, val: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: val }));
@@ -161,15 +164,29 @@ export default function UserSurveyPage() {
     setSubmitting(true);
 
     try {
-      const method = isEditMode ? 'PUT' : 'POST';
-      const res = await fetch(`/api/survey/${formId}/submit`, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData
-        },
-        body: JSON.stringify({ answers })
-      });
+      let res: Response;
+
+      if (isEditMode && targetResponseId) {
+        // PUT /api/survey/response/[responseId] for updating target response
+        res = await fetch(`/api/survey/response/${targetResponseId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-telegram-init-data': initData
+          },
+          body: JSON.stringify({ answers })
+        });
+      } else {
+        // POST /api/survey/[id]/submit for NEW submission (creates new response row)
+        res = await fetch(`/api/survey/${formId}/submit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-telegram-init-data': initData
+          },
+          body: JSON.stringify({ answers })
+        });
+      }
 
       const json = await res.json();
 
@@ -179,10 +196,10 @@ export default function UserSurveyPage() {
           message: json.message || (isEditMode ? '응답이 성공적으로 수정되었습니다.' : '응답이 성공적으로 제출되었습니다.')
         });
       } else {
-        setValidationError(json.error || '제출 실패');
+        setValidationError(json.error || '처리에 실패했습니다.');
       }
     } catch (err: any) {
-      setValidationError(err.message || '네트워크 오류');
+      setValidationError(err.message || '네트워크 오류가 발생했습니다.');
     } finally {
       setSubmitting(false);
     }
@@ -254,7 +271,7 @@ export default function UserSurveyPage() {
           {isEditMode && (
             <span className="text-[10px] font-extrabold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full flex items-center space-x-1">
               <Edit3 className="w-3 h-3" />
-              <span>수정 모드</span>
+              <span>응답 수정 중</span>
             </span>
           )}
           <span className="text-[10px] font-extrabold bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full">
@@ -444,7 +461,7 @@ export default function UserSurveyPage() {
             disabled={submitting}
             className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-extrabold text-sm shadow-lg active:scale-95 transition disabled:opacity-50"
           >
-            {isEditMode ? '응답 수정 완료하기' : '응답 제출하기'}
+            {isEditMode ? '수정 내용 저장하기' : '새 응답 제출하기'}
           </button>
         </div>
       </div>
@@ -455,7 +472,7 @@ export default function UserSurveyPage() {
           <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-bold text-slate-900 text-base">
-                {isEditMode ? '응답 수정 확인' : '응답 제출 확인'}
+                {isEditMode ? '응답 수정 확인' : '새 응답 제출 확인'}
               </h3>
               <button onClick={() => setShowConfirmModal(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-5 h-5" />
@@ -464,8 +481,8 @@ export default function UserSurveyPage() {
 
             <p className="text-xs text-slate-600 leading-relaxed">
               {isEditMode
-                ? '수정된 답변으로 저장하시겠습니까?\n텔레그램 채팅방에도 수정 내역이 업데이트됩니다.'
-                : '응답을 제출하시겠습니까?\n제출 후 나중에 내 응답 메뉴에서 수정할 수 있습니다.'}
+                ? '기존 응답 항목을 선택된 내용으로 수정하시겠습니까?'
+                : '새로운 응답으로 등록하시겠습니까?\n이전 응답 이력도 내 참여 내역에 그대로 보존됩니다.'}
             </p>
 
             <div className="flex items-center space-x-3 pt-2">
@@ -480,7 +497,7 @@ export default function UserSurveyPage() {
                 disabled={submitting}
                 className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50"
               >
-                {submitting ? '처리 중...' : isEditMode ? '수정 저장' : '제출하기'}
+                {submitting ? '처리 중...' : isEditMode ? '수정 저장' : '새로 제출'}
               </button>
             </div>
           </div>
