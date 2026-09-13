@@ -104,19 +104,8 @@ export async function getAuthSessionByUserId(userId: number): Promise<AuthSessio
  * Verify initData and lookup Admin role from Supabase DB
  */
 export async function getAuthSession(initData: string): Promise<AuthSession> {
+  // Strictly verify HMAC-SHA256 signature against Telegram Bot Token
   let user = verifyTelegramWebAppData(initData);
-
-  if (!user && initData) {
-    try {
-      const urlParams = new URLSearchParams(initData);
-      const userStr = urlParams.get('user');
-      if (userStr) {
-        user = JSON.parse(userStr) as TelegramUser;
-      }
-    } catch (e) {
-      console.warn('Fallback initData user parsing error:', e);
-    }
-  }
 
   if (!user) {
     return {
