@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
         .from('telegram_updates')
         .insert({ update_id: updateId });
 
-      if (dedupErr) {
+      if (dedupErr && (dedupErr.code === '23505' || dedupErr.message?.includes('duplicate key') || dedupErr.message?.includes('primary key'))) {
         // Primary key conflict means this update_id was already processed
         return NextResponse.json({ ok: true, duplicate: true });
       }
