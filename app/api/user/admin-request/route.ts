@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
   const session = await getAuthSessionFromRequest(req);
 
   if (!session.authenticated || !session.user) {
-    return NextResponse.json({ error: 'Unauthorized: Telegram authentication required' }, { status: 401 });
+    return NextResponse.json({ error: '인증 오류: 텔레그램 계정 인증이 필요합니다.' }, { status: 401 });
   }
 
   const { id: telegramUserId, first_name, username } = session.user;
@@ -88,6 +88,6 @@ export async function POST(req: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('Admin request submission error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

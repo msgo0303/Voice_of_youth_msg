@@ -11,7 +11,7 @@ export async function POST(
 
   const requestId = params.id;
   if (!requestId) {
-    return NextResponse.json({ error: 'Request ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '신청 ID가 필요합니다.' }, { status: 400 });
   }
 
   try {
@@ -25,7 +25,7 @@ export async function POST(
       .single();
 
     if (fetchErr || !request) {
-      return NextResponse.json({ error: 'Admin request not found' }, { status: 404 });
+      return NextResponse.json({ error: '관리자 신청 내역을 찾을 수 없습니다.' }, { status: 404 });
     }
 
     // Strict State Transition Check: Only PENDING requests can be approved
@@ -79,6 +79,6 @@ export async function POST(
     });
   } catch (error: any) {
     console.error('Approve admin request error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Fetch topics error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
 
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('Create topic error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
 
@@ -83,7 +83,7 @@ export async function DELETE(req: NextRequest) {
     const topicDbId = searchParams.get('id');
 
     if (!topicDbId) {
-      return NextResponse.json({ error: 'Topic Database ID is required' }, { status: 400 });
+      return NextResponse.json({ error: '삭제할 토픽 ID가 필요합니다.' }, { status: 400 });
     }
 
     const supabase = getServiceSupabase();
@@ -102,6 +102,6 @@ export async function DELETE(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Delete topic error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

@@ -12,7 +12,7 @@ export async function POST(
 
   const adminId = params.id;
   if (!adminId) {
-    return NextResponse.json({ error: 'Admin ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '관리자 ID가 필요합니다.' }, { status: 400 });
   }
 
   // Prevent self-deactivation of current SUPER_ADMIN
@@ -43,6 +43,6 @@ export async function POST(
     });
   } catch (error: any) {
     console.error('Deactivate admin error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

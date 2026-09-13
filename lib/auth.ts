@@ -153,14 +153,14 @@ export async function requireAdmin(req: NextRequest): Promise<{ session: AuthSes
   if (!session.authenticated || !session.user) {
     return {
       session,
-      response: NextResponse.json({ error: 'Unauthorized: Invalid Telegram authentication' }, { status: 401 })
+      response: NextResponse.json({ error: '인증 오류: 텔레그램 계정 인증에 실패했습니다.' }, { status: 401 })
     };
   }
 
   if (session.role !== 'SUPER_ADMIN' && session.role !== 'ADMIN') {
     return {
       session,
-      response: NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 })
+      response: NextResponse.json({ error: '접근 권한 없음: 관리자 권한(ADMIN)이 필요합니다.' }, { status: 403 })
     };
   }
 
@@ -176,14 +176,14 @@ export async function requireSuperAdmin(req: NextRequest): Promise<{ session: Au
   if (!session.authenticated || !session.user) {
     return {
       session,
-      response: NextResponse.json({ error: 'Unauthorized: Invalid Telegram authentication' }, { status: 401 })
+      response: NextResponse.json({ error: '인증 오류: 텔레그램 계정 인증에 실패했습니다.' }, { status: 401 })
     };
   }
 
   if (session.role !== 'SUPER_ADMIN') {
     return {
       session,
-      response: NextResponse.json({ error: 'Forbidden: SUPER_ADMIN access required' }, { status: 403 })
+      response: NextResponse.json({ error: '접근 권한 없음: 최고 관리자 권한(SUPER_ADMIN)이 필요합니다.' }, { status: 403 })
     };
   }
 
@@ -199,16 +199,17 @@ export async function requireViewerOrAdmin(req: NextRequest): Promise<{ session:
   if (!session.authenticated || !session.user) {
     return {
       session,
-      response: NextResponse.json({ error: 'Unauthorized: Invalid Telegram authentication' }, { status: 401 })
+      response: NextResponse.json({ error: '인증 오류: 텔레그램 계정 인증에 실패했습니다.' }, { status: 401 })
     };
   }
 
   if (session.role !== 'SUPER_ADMIN' && session.role !== 'ADMIN' && session.role !== 'VIEWER') {
     return {
       session,
-      response: NextResponse.json({ error: 'Forbidden: Read access required' }, { status: 403 })
+      response: NextResponse.json({ error: '접근 권한 없음: 열람 권한이 필요합니다.' }, { status: 403 })
     };
   }
 
   return { session };
 }
+

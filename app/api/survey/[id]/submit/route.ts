@@ -11,13 +11,13 @@ export async function POST(
 ) {
   const formId = params.id;
   if (!formId) {
-    return NextResponse.json({ error: 'Form ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
   }
 
   // 1. Authenticate Telegram User
   const session = await getAuthSessionFromRequest(req);
   if (!session.authenticated || !session.user) {
-    return NextResponse.json({ error: 'Telegram authentication required' }, { status: 401 });
+    return NextResponse.json({ error: '텔레그램 계정 인증이 필요합니다.' }, { status: 401 });
   }
 
   const user = session.user;
@@ -27,7 +27,7 @@ export async function POST(
     const { answers } = body; // Map of question_id -> answer_value string
 
     if (!answers || typeof answers !== 'object') {
-      return NextResponse.json({ error: 'Invalid answers payload' }, { status: 400 });
+      return NextResponse.json({ error: '유효하지 않은 응답 데이터 형식입니다.' }, { status: 400 });
     }
 
     const supabase = getServiceSupabase();
@@ -168,6 +168,6 @@ export async function POST(
     }, { status: 201 });
   } catch (error: any) {
     console.error('Survey submission error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

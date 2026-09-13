@@ -70,7 +70,7 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
           user: null,
           role: 'USER',
           telegramUserId: userId,
-          error: data.error || 'Authentication failed'
+          error: data.error || '인증에 실패했습니다.'
         }));
       }
     } catch (err: any) {
@@ -81,7 +81,7 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
         user: null,
         role: 'USER',
         telegramUserId: userId,
-        error: err.message || 'Network error'
+        error: err.message || '네트워크 오류가 발생했습니다.'
       }));
     }
   };

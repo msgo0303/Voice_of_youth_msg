@@ -12,7 +12,7 @@ export async function PATCH(
 
   const adminId = params.id;
   if (!adminId) {
-    return NextResponse.json({ error: 'Admin ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '관리자 ID가 필요합니다.' }, { status: 400 });
   }
 
   try {
@@ -20,7 +20,7 @@ export async function PATCH(
     const { role } = body;
 
     if (role !== 'ADMIN' && role !== 'VIEWER' && role !== 'SUPER_ADMIN') {
-      return NextResponse.json({ error: 'Invalid role' }, { status: 400 });
+      return NextResponse.json({ error: '유효하지 않은 역할 구분입니다.' }, { status: 400 });
     }
 
     const supabase = getServiceSupabase();
@@ -45,6 +45,6 @@ export async function PATCH(
     });
   } catch (error: any) {
     console.error('Role change error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }

@@ -14,7 +14,7 @@ export async function GET(
 
   const formId = params.id;
   if (!formId) {
-    return NextResponse.json({ error: 'Form ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
   }
 
   try {
@@ -28,7 +28,7 @@ export async function GET(
       .single();
 
     if (formError || !form) {
-      return NextResponse.json({ error: 'Form not found' }, { status: 404 });
+      return NextResponse.json({ error: '설문을 찾을 수 없습니다.' }, { status: 404 });
     }
 
     // 2. Fetch questions ordered by order_index
@@ -61,7 +61,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Fetch form detail error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
 
@@ -75,7 +75,7 @@ export async function PUT(
 
   const formId = params.id;
   if (!formId) {
-    return NextResponse.json({ error: 'Form ID is required' }, { status: 400 });
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
   }
 
   try {
@@ -145,7 +145,7 @@ export async function PUT(
       .single();
 
     if (updateFormErr || !updatedForm) {
-      return NextResponse.json({ error: updateFormErr?.message || 'Form update failed' }, { status: 500 });
+      return NextResponse.json({ error: updateFormErr?.message || '설문 정보 수정에 실패했습니다.' }, { status: 500 });
     }
 
     // 2. Safely replace questions without touching response_answers table
@@ -188,7 +188,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Update form error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
 

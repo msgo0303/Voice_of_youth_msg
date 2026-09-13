@@ -24,6 +24,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (error: any) {
     console.error('Admin requests list error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
   }
 }
