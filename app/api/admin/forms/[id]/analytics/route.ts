@@ -13,9 +13,9 @@ export async function GET(
     return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
   }
 
-  // 1. RBAC Auth Check
+  // 1. RBAC Auth Check (SUPER_ADMIN, ADMIN, VIEWER allowed)
   const session = await getAuthSessionFromRequest(req);
-  if (!session.authenticated || (session.role !== 'SUPER_ADMIN' && session.role !== 'ADMIN')) {
+  if (!session.authenticated || !['SUPER_ADMIN', 'ADMIN', 'VIEWER'].includes(session.role)) {
     return NextResponse.json({ error: '관리자 권한이 필요합니다.' }, { status: 403 });
   }
 

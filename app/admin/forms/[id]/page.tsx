@@ -713,6 +713,11 @@ export default function AdminFormDetailPage() {
                   {/* Render Option Breakdown Bars (SINGLE_CHOICE, MULTIPLE_CHOICE, DROPDOWN) */}
                   {qa.option_breakdown && (
                     <div className="space-y-3 pt-1">
+                      {qa.type === 'MULTIPLE_CHOICE' && (
+                        <p className="text-[11px] text-slate-400 italic font-medium">
+                          * 복수 선택 문항은 전체 응답자 수({qa.answered_count}명) 대비 비율로 계산되어 비율 합계가 100%를 초과할 수 있습니다.
+                        </p>
+                      )}
                       {qa.option_breakdown.map((opt, oIdx) => (
                         <div key={oIdx} className="space-y-1">
                           <div className="flex items-center justify-between text-xs font-semibold text-slate-800">
