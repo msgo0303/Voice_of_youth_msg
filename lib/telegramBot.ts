@@ -10,7 +10,7 @@ export async function sendTelegramBotMessage(params: {
   reply_markup?: any;
   message_thread_id?: number;
 }): Promise<{ ok: boolean; result?: any; error?: string }> {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8639864400:AAGiBD8Uz9iTmvVmnDd1rKysVXNn1yznHsQ';
   if (!botToken) {
     console.warn('TELEGRAM_BOT_TOKEN is not configured in .env.local');
     return { ok: false, error: 'Bot token missing' };

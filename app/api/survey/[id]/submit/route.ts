@@ -154,7 +154,7 @@ export async function POST(
           targetChatId = cachedTopic.chat_id;
           if (!targetTopicId) targetTopicId = cachedTopic.topic_id;
         } else {
-          targetChatId = process.env.TELEGRAM_CHAT_ID || 1284576145;
+          targetChatId = process.env.TELEGRAM_CHAT_ID || -1003721720880;
         }
       }
 
@@ -170,7 +170,7 @@ export async function POST(
 
       let telegramRes = await sendTelegramBotMessage({
         chat_id: targetChatId,
-        message_thread_id: targetTopicId || undefined,
+        message_thread_id: targetTopicId ? Number(targetTopicId) : undefined,
         text: messageText,
         parse_mode: 'HTML'
       });
