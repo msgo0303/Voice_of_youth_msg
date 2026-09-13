@@ -12,13 +12,19 @@ export default function AdminMembersPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'REQUESTS' | 'MEMBERS'>('REQUESTS');
 
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (initData) headers['x-telegram-init-data'] = initData;
+    if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+    return headers;
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const headers: Record<string, string> = {};
-      if (initData) headers['x-telegram-init-data'] = initData;
-      if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
-
+      const headers = getAuthHeaders();
       const [reqRes, memRes] = await Promise.all([
         fetch('/api/admin/requests', { headers }),
         fetch('/api/admin/members', { headers })
@@ -49,7 +55,7 @@ export default function AdminMembersPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}/approve`, {
         method: 'POST',
-        headers: { 'x-telegram-init-data': initData }
+        headers: getAuthHeaders()
       });
       const json = await res.json();
       if (res.ok && json.success) {
@@ -68,7 +74,7 @@ export default function AdminMembersPage() {
     try {
       const res = await fetch(`/api/admin/requests/${id}/reject`, {
         method: 'POST',
-        headers: { 'x-telegram-init-data': initData }
+        headers: getAuthHeaders()
       });
       const json = await res.json();
       if (res.ok && json.success) {
@@ -86,10 +92,7 @@ export default function AdminMembersPage() {
     try {
       const res = await fetch(`/api/admin/members/${id}/role`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ role: newRole })
       });
       const json = await res.json();
@@ -108,7 +111,7 @@ export default function AdminMembersPage() {
     try {
       const res = await fetch(`/api/admin/members/${id}/deactivate`, {
         method: 'POST',
-        headers: { 'x-telegram-init-data': initData }
+        headers: getAuthHeaders()
       });
       const json = await res.json();
       if (res.ok && json.success) {

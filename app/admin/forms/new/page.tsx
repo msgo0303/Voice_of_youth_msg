@@ -62,7 +62,7 @@ const DEFAULT_QUESTIONS: EditableQuestion[] = [
 
 export default function NewFormBuilderPage() {
   const router = useRouter();
-  const { role, initData } = useTelegramAuth();
+  const { role, initData, telegramUserId, isAuthenticated } = useTelegramAuth();
 
   // Form Meta State
   const [title, setTitle] = useState('');
@@ -82,11 +82,20 @@ export default function NewFormBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (initData) headers['x-telegram-init-data'] = initData;
+    if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+    return headers;
+  };
+
   useEffect(() => {
     async function fetchTopics() {
       try {
         const res = await fetch('/api/admin/topics', {
-          headers: { 'x-telegram-init-data': initData }
+          headers: getAuthHeaders()
         });
         const json = await res.json();
         if (res.ok && json.success) {
@@ -100,8 +109,10 @@ export default function NewFormBuilderPage() {
       }
     }
 
-    if (initData) fetchTopics();
-  }, [initData]);
+    if (isAuthenticated || initData || telegramUserId) {
+      fetchTopics();
+    }
+  }, [initData, telegramUserId, isAuthenticated]);
 
   // Question Manipulations
   const addQuestion = (type: QuestionType) => {
@@ -212,10 +223,7 @@ export default function NewFormBuilderPage() {
     try {
       const res = await fetch('/api/admin/forms/full', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 

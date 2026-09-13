@@ -36,7 +36,7 @@ export default function EditFormBuilderPage() {
   const router = useRouter();
   const params = useParams();
   const formId = params.id as string;
-  const { role, initData } = useTelegramAuth();
+  const { role, initData, telegramUserId, isAuthenticated } = useTelegramAuth();
 
   // Form Meta State
   const [title, setTitle] = useState('');
@@ -58,12 +58,21 @@ export default function EditFormBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getAuthHeaders = () => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (initData) headers['x-telegram-init-data'] = initData;
+    if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+    return headers;
+  };
+
   useEffect(() => {
     async function loadFormAndTopics() {
       try {
         const [formRes, topicsRes] = await Promise.all([
-          fetch(`/api/admin/forms/${formId}`, { headers: { 'x-telegram-init-data': initData } }),
-          fetch('/api/admin/topics', { headers: { 'x-telegram-init-data': initData } })
+          fetch(`/api/admin/forms/${formId}`, { headers: getAuthHeaders() }),
+          fetch('/api/admin/topics', { headers: getAuthHeaders() })
         ]);
 
         const formJson = await formRes.json();
@@ -107,10 +116,10 @@ export default function EditFormBuilderPage() {
       }
     }
 
-    if (initData && formId) {
+    if ((isAuthenticated || initData || telegramUserId) && formId) {
       loadFormAndTopics();
     }
-  }, [initData, formId]);
+  }, [initData, telegramUserId, isAuthenticated, formId]);
 
   // Question Manipulations
   const addQuestion = (type: QuestionType) => {
@@ -215,10 +224,7 @@ export default function EditFormBuilderPage() {
     try {
       const res = await fetch(`/api/admin/forms/${formId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-telegram-init-data': initData
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
