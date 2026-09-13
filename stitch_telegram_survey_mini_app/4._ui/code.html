@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>FormGram Showcase</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-on-surface":"#eef0ff","on-primary":"#ffffff","tertiary-fixed":"#6ffbbe","on-tertiary":"#ffffff","secondary":"#006591","surface-bright":"#faf8ff","secondary-container":"#39b8fd","surface":"#faf8ff","tertiary":"#006242","on-secondary-fixed-variant":"#004c6e","on-tertiary-container":"#bdffdb","surface-container-lowest":"#ffffff","primary-fixed-dim":"#b4c5ff","tertiary-container":"#007d55","on-surface":"#131b2e","primary-container":"#2563eb","on-background":"#131b2e","surface-container-highest":"#dae2fd","on-secondary":"#ffffff","error":"#ba1a1a","on-secondary-fixed":"#001e2f","surface-tint":"#0053db","on-error":"#ffffff","on-tertiary-fixed":"#002113","surface-container-high":"#e2e7ff","background":"#faf8ff","surface-container":"#eaedff","on-tertiary-fixed-variant":"#005236","inverse-surface":"#283044","outline-variant":"#c3c6d7","error-container":"#ffdad6","on-primary-container":"#eeefff","on-primary-fixed":"#00174b","inverse-primary":"#b4c5ff","surface-variant":"#dae2fd","secondary-fixed":"#c9e6ff","on-surface-variant":"#434655","surface-container-low":"#f2f3ff","surface-dim":"#d2d9f4","primary":"#004ac6","outline":"#737686","tertiary-fixed-dim":"#4edea3","on-primary-fixed-variant":"#003ea8","primary-fixed":"#dbe1ff","on-error-container":"#93000a","on-secondary-container":"#004666","secondary-fixed-dim":"#89ceff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"0.75rem","gutter":"0.75rem","space-xl":"1.5rem","space-sm":"0.5rem","space-xs":"0.25rem","margin":"1rem","space-lg":"1rem"},"fontFamily":{"body-lg":["Inter"],"headline-sm":["Inter"],"label-md":["Inter"],"label-sm":["Inter"],"headline-md":["Inter"],"body-sm":["Inter"],"body-md":["Inter"],"label-lg":["Inter"],"headline-lg":["Inter"],"title-md":["Inter"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-sm":["11px",{"lineHeight":"14px","fontWeight":"500"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"700"}],"title-md":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"600"}]}}}};</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="FormGram Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VPlz7zIwp9hsHV7hYvF7_R8csRTKSy6nfAwU0dBvZEN8zYUvxTRKm5FMu5bGA7x2l8Cu6--W11VtxBIdYHq5m25-jwyHnP0PcTuDRLeJXREuxZGw295Z-wVgaNH9xbfhgzV-3OPsWh5sCyHiIO2ixBqqba8ixlxgTz0ooXIqvqXgJEWV_AA2DWigO07rzH2VHDktQ3S2VL_9Cr65dY2PMAO4p_g0DTnwrJCqhQBVP8kgT8wKhIpmEZFMQ"/><div class="flex flex-col"><span class="font-label-lg text-label-lg text-on-surface tracking-tight leading-none">FormGram (폼그램)</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-space-xs">Telegram Mini App Design Showcase</span></div></div><nav class="hidden xl:flex items-center gap-space-xs overflow-x-auto py-space-xs px-space-xs bg-surface-container-low rounded-full" data-active-classes="bg-primary-container text-on-primary-container rounded-full shadow-sm"><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="admin-dashboard" href="#">1. 관리자 대시보드</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="survey-list-filters" href="#">2. 설문 목록 &amp; 필터</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="survey-builder-basic-info" href="#">3. 설문 생성 &amp; 기본정보</a><a aria-current="page" class="px-space-md py-space-xs font-label-md transition-colors whitespace-nowrap bg-primary-container text-on-primary-container rounded-full shadow-sm" data-path="question-editor-ui-types" href="#">4. 질문 편집기 &amp; 유형별 UI</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="respondent-flow-confirm-modal" href="#">5. 사용자 설문 응답 &amp; 확인모달</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="submission-complete-my-response" href="#">6. 제출 완료 &amp; 내 응답</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="response-analytics-statistics" href="#">7. 관리자 응답 목록 &amp; 통계</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="survey-sharing-permission-management" href="#">8. 설문 공유 &amp; 관리자 승인 관리</a></nav><div class="flex items-center gap-space-sm min-w-max"><div class="hidden md:flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded-full"><span class="font-label-sm text-label-sm text-on-surface-variant">Environment:</span><span class="font-label-sm text-label-sm text-primary">Telegram WebApp SDK v7.0</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-background"><div class="flex flex-col w-full">
+<!-- Desktop Layout Wrapper -->
+<div class="w-full max-w-7xl mx-auto px-margin py-space-xl flex flex-col lg:flex-row gap-space-xl items-start justify-center">
+<!-- Left / Center: Interactive 390px Telegram Mini App Mockup Frame -->
+<div class="w-full flex justify-center lg:w-auto flex-shrink-0">
+<div class="w-[390px] max-w-full bg-surface-container-low rounded-[32px] shadow-xl overflow-hidden flex flex-col relative" style="height: 844px;">
+<!-- Telegram WebApp Client Inset Header Bar -->
+<div class="bg-surface-container-lowest px-4 pt-3 pb-2.5 flex items-center justify-between shadow-sm z-20">
+<div class="flex items-center gap-2">
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">chevron_left</span>
+</button>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-tight">질문 편집</span>
+<span class="font-label-sm text-label-sm text-primary flex items-center gap-1">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                총 5개 문항 작성 중
+              </span>
+</div>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="flex items-center gap-1 bg-surface-container-high hover:bg-surface-variant text-on-surface px-2.5 py-1.5 rounded-full transition-all" id="preview-toggle-btn">
+<span class="material-symbols-outlined text-primary text-[18px]">visibility</span>
+<span class="font-label-sm text-label-sm font-semibold">미리보기</span>
+</button>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Questions Editor Canvas -->
+<div class="flex-1 overflow-y-auto px-3.5 py-4 space-y-4 pb-28 scroll-smooth" id="questions-viewport">
+<!-- Notice Banner -->
+<div class="bg-primary-fixed/40 rounded-xl p-3 flex items-start gap-2.5 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">info</span>
+<div class="flex flex-col text-on-surface">
+<span class="font-label-md text-label-md font-semibold text-primary">문항 순서 드래그 정렬 지원</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">좌측 핸들을 탭하여 위아래로 끌면 질문 번호가 자동 리매핑됩니다.</span>
+</div>
+</div>
+<!-- Q1. 지역 선택 (기본 템플릿 드롭다운) -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm relative group hover:shadow-md transition-shadow" data-card-id="q1">
+<!-- Top Controls Row -->
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-low/50 -mx-4 -mt-4 px-4 py-2.5 rounded-t-2xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-grab active:cursor-grabbing select-none text-[20px] hover:text-primary">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold px-2 py-0.5 rounded-md bg-primary-fixed text-on-primary-fixed">Q1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">드롭다운 단일선택</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded-lg hover:bg-surface-container-highest flex items-center justify-center text-outline hover:text-primary transition-colors" title="질문 복사">
+<span class="material-symbols-outlined text-[17px]">content_copy</span>
+</button>
+<button class="w-7 h-7 rounded-lg hover:bg-error-container flex items-center justify-center text-outline hover:text-error transition-colors" title="질문 삭제">
+<span class="material-symbols-outlined text-[17px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Question Title & Mandatory Toggle -->
+<div class="space-y-3">
+<div class="flex items-center justify-between gap-2">
+<div class="flex-1">
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface font-semibold focus:outline-none focus:bg-surface-container-low/60 rounded-lg px-2 py-1 transition-colors" type="text" value="소속 지역을 선택해주세요"/>
+</div>
+<!-- Toggle switch -->
+<div class="flex items-center gap-1.5 shrink-0 bg-surface-container px-2 py-1 rounded-full">
+<span class="font-label-sm text-label-sm text-on-surface font-medium">필수</span>
+<div class="w-8 h-4.5 bg-primary rounded-full relative p-0.5 flex items-center cursor-pointer">
+<div class="w-3.5 h-3.5 bg-on-primary rounded-full shadow-sm ml-auto"></div>
+</div>
+</div>
+</div>
+<!-- Question Type Badge & Rule -->
+<div class="flex items-center justify-between">
+<div class="inline-flex items-center gap-1 px-2.5 py-1 bg-surface-container text-on-surface-variant rounded-lg text-label-sm font-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">arrow_drop_down_circle</span>
+<span>기본 템플릿 (드롭다운)</span>
+</div>
+<span class="font-label-sm text-label-sm text-tertiary font-semibold flex items-center gap-0.5 bg-tertiary-fixed/30 px-2 py-0.5 rounded-md">
+<span class="material-symbols-outlined text-[14px]">lock_clock</span> 최대 1회 제한
+                </span>
+</div>
+<!-- Options Chip Preview Container -->
+<div class="bg-surface-container-low rounded-xl p-3 space-y-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">등록된 선택 옵션 (총 8개 지역)</span>
+<button class="font-label-sm text-label-sm text-primary font-semibold hover:underline">+ 옵션 편집</button>
+</div>
+<div class="flex flex-wrap gap-1.5">
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">사당 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">안양 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">신림 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">신사 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">군포 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">서울역 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">새신자 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+<span class="px-2.5 py-1 bg-surface-container-lowest text-on-surface rounded-full text-label-sm font-label-sm shadow-sm flex items-center gap-1">대학 <span class="material-symbols-outlined text-[13px] text-outline cursor-pointer hover:text-error">close</span></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Q2. 이름 입력 (단답형) -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm relative group hover:shadow-md transition-shadow" data-card-id="q2">
+<!-- Header -->
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-low/50 -mx-4 -mt-4 px-4 py-2.5 rounded-t-2xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-grab active:cursor-grabbing select-none text-[20px] hover:text-primary">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold px-2 py-0.5 rounded-md bg-primary-fixed text-on-primary-fixed">Q2</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">단답형 텍스트</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded-lg hover:bg-surface-container-highest flex items-center justify-center text-outline hover:text-primary transition-colors" title="질문 복사">
+<span class="material-symbols-outlined text-[17px]">content_copy</span>
+</button>
+<button class="w-7 h-7 rounded-lg hover:bg-error-container flex items-center justify-center text-outline hover:text-error transition-colors" title="질문 삭제">
+<span class="material-symbols-outlined text-[17px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Content -->
+<div class="space-y-3">
+<div class="flex items-center justify-between gap-2">
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface font-semibold focus:outline-none focus:bg-surface-container-low/60 rounded-lg px-2 py-1 transition-colors" type="text" value="응답자 성함을 입력해주세요"/>
+<div class="flex items-center gap-1.5 shrink-0 bg-surface-container px-2 py-1 rounded-full">
+<span class="font-label-sm text-label-sm text-on-surface font-medium">필수</span>
+<div class="w-8 h-4.5 bg-primary rounded-full relative p-0.5 flex items-center cursor-pointer">
+<div class="w-3.5 h-3.5 bg-on-primary rounded-full shadow-sm ml-auto"></div>
+</div>
+</div>
+</div>
+<!-- Input preview -->
+<div class="relative">
+<input class="w-full h-11 px-3.5 bg-surface-container-low rounded-xl text-on-surface-variant font-body-md text-body-md cursor-not-allowed select-none opacity-80" disabled="" placeholder="짧은 답변을 입력하세요 (응답자 실명 입력)" type="text"/>
+<span class="material-symbols-outlined absolute right-3.5 top-3 text-outline text-[18px]">edit_note</span>
+</div>
+</div>
+</div>
+<!-- Q3. 참여 프로그램 (객관식 / 라디오) -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm relative group hover:shadow-md transition-shadow" data-card-id="q3">
+<!-- Header -->
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-low/50 -mx-4 -mt-4 px-4 py-2.5 rounded-t-2xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-grab active:cursor-grabbing select-none text-[20px] hover:text-primary">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold px-2 py-0.5 rounded-md bg-primary-fixed text-on-primary-fixed">Q3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">객관식 (라디오 단일선택)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded-lg hover:bg-surface-container-highest flex items-center justify-center text-outline hover:text-primary transition-colors" title="질문 복사">
+<span class="material-symbols-outlined text-[17px]">content_copy</span>
+</button>
+<button class="w-7 h-7 rounded-lg hover:bg-error-container flex items-center justify-center text-outline hover:text-error transition-colors" title="질문 삭제">
+<span class="material-symbols-outlined text-[17px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Content -->
+<div class="space-y-3">
+<div class="flex items-center justify-between gap-2">
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface font-semibold focus:outline-none focus:bg-surface-container-low/60 rounded-lg px-2 py-1 transition-colors" type="text" value="가장 유익했던 프로그램 세션을 선택해주세요"/>
+<div class="flex items-center gap-1.5 shrink-0 bg-surface-container px-2 py-1 rounded-full">
+<span class="font-label-sm text-label-sm text-on-surface font-medium">필수</span>
+<div class="w-8 h-4.5 bg-primary rounded-full relative p-0.5 flex items-center cursor-pointer">
+<div class="w-3.5 h-3.5 bg-on-primary rounded-full shadow-sm ml-auto"></div>
+</div>
+</div>
+</div>
+<!-- Options List -->
+<div class="space-y-2">
+<div class="flex items-center gap-2.5 bg-surface-container-low px-3 py-2 rounded-xl group/opt">
+<div class="w-4 h-4 rounded-full bg-surface-container-highest flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<input class="flex-1 bg-transparent font-body-md text-body-md text-on-surface focus:outline-none" type="text" value="리더십 비전 특강"/>
+<span class="material-symbols-outlined text-outline text-[16px] hover:text-error cursor-pointer opacity-0 group-hover/opt:opacity-100 transition-opacity">remove_circle_outline</span>
+</div>
+<div class="flex items-center gap-2.5 bg-surface-container-low px-3 py-2 rounded-xl group/opt">
+<div class="w-4 h-4 rounded-full bg-surface-container-highest flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<input class="flex-1 bg-transparent font-body-md text-body-md text-on-surface focus:outline-none" type="text" value="그룹 토론 및 멘토링"/>
+<span class="material-symbols-outlined text-outline text-[16px] hover:text-error cursor-pointer opacity-0 group-hover/opt:opacity-100 transition-opacity">remove_circle_outline</span>
+</div>
+<div class="flex items-center gap-2.5 bg-surface-container-low px-3 py-2 rounded-xl group/opt">
+<div class="w-4 h-4 rounded-full bg-surface-container-highest flex items-center justify-center">
+<div class="w-1.5 h-1.5 rounded-full bg-outline"></div>
+</div>
+<input class="flex-1 bg-transparent font-body-md text-body-md text-on-surface focus:outline-none" type="text" value="야외 팀빌딩 액티비티"/>
+<span class="material-symbols-outlined text-outline text-[16px] hover:text-error cursor-pointer opacity-0 group-hover/opt:opacity-100 transition-opacity">remove_circle_outline</span>
+</div>
+<!-- Add option button -->
+<button class="w-full py-2 px-3 rounded-xl bg-surface-container-high/60 hover:bg-surface-container-high flex items-center justify-center gap-1.5 text-primary font-label-md text-label-md font-semibold transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+                  옵션 추가
+                </button>
+</div>
+</div>
+</div>
+<!-- Q4. 전반적인 만족도 평가 (5단계 만족도 + 필수 사유 서술형) -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm relative group hover:shadow-md transition-shadow ring-1 ring-primary/20" data-card-id="q4">
+<!-- Header -->
+<div class="flex items-center justify-between pb-3 mb-3 bg-primary-fixed/25 -mx-4 -mt-4 px-4 py-2.5 rounded-t-2xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary cursor-grab active:cursor-grabbing select-none text-[20px]">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold px-2 py-0.5 rounded-md bg-primary text-on-primary">Q4</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">만족도 5단계 + 필수 사유 복합형</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded-lg hover:bg-surface-container-highest flex items-center justify-center text-outline hover:text-primary transition-colors" title="질문 복사">
+<span class="material-symbols-outlined text-[17px]">content_copy</span>
+</button>
+<button class="w-7 h-7 rounded-lg hover:bg-error-container flex items-center justify-center text-outline hover:text-error transition-colors" title="질문 삭제">
+<span class="material-symbols-outlined text-[17px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Content -->
+<div class="space-y-3">
+<div class="flex items-center justify-between gap-2">
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface font-semibold focus:outline-none focus:bg-surface-container-low/60 rounded-lg px-2 py-1 transition-colors" type="text" value="이번 교육에 대해 얼마나 만족하시나요?"/>
+<div class="flex items-center gap-1.5 shrink-0 bg-surface-container px-2 py-1 rounded-full">
+<span class="font-label-sm text-label-sm text-on-surface font-medium">필수</span>
+<div class="w-8 h-4.5 bg-primary rounded-full relative p-0.5 flex items-center cursor-pointer">
+<div class="w-3.5 h-3.5 bg-on-primary rounded-full shadow-sm ml-auto"></div>
+</div>
+</div>
+</div>
+<!-- 5-Step Scale Buttons -->
+<div class="bg-surface-container-low p-2.5 rounded-xl space-y-2">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant px-1">
+<span>척도 구성 (1: 불만족 → 5: 만족)</span>
+<span class="text-primary font-semibold">4점 선택 상태 미리보기</span>
+</div>
+<div class="grid grid-cols-5 gap-1.5">
+<button class="py-2.5 rounded-lg bg-surface-container-lowest text-center flex flex-col items-center justify-center gap-0.5 hover:bg-surface-container-high transition-colors" type="button">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface-variant">1</span>
+<span class="text-[10px] text-on-surface-variant leading-none">매우불만</span>
+</button>
+<button class="py-2.5 rounded-lg bg-surface-container-lowest text-center flex flex-col items-center justify-center gap-0.5 hover:bg-surface-container-high transition-colors" type="button">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface-variant">2</span>
+<span class="text-[10px] text-on-surface-variant leading-none">불만족</span>
+</button>
+<button class="py-2.5 rounded-lg bg-surface-container-lowest text-center flex flex-col items-center justify-center gap-0.5 hover:bg-surface-container-high transition-colors" type="button">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface-variant">3</span>
+<span class="text-[10px] text-on-surface-variant leading-none">보통</span>
+</button>
+<button class="py-2.5 rounded-lg bg-primary text-center flex flex-col items-center justify-center gap-0.5 shadow-md shadow-primary/20 scale-105" type="button">
+<span class="font-headline-sm text-headline-sm font-bold text-on-primary">4</span>
+<span class="text-[10px] text-on-primary font-semibold leading-none">만족</span>
+</button>
+<button class="py-2.5 rounded-lg bg-surface-container-lowest text-center flex flex-col items-center justify-center gap-0.5 hover:bg-surface-container-high transition-colors" type="button">
+<span class="font-headline-sm text-headline-sm font-bold text-on-surface-variant">5</span>
+<span class="text-[10px] text-on-surface-variant leading-none">매우만족</span>
+</button>
+</div>
+</div>
+<!-- Mandatory Reason Sub-Block -->
+<div class="bg-primary-fixed/20 p-3 rounded-xl space-y-1.5">
+<div class="flex items-center justify-between">
+<label class="font-label-sm text-label-sm font-semibold text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">priority_high</span>
+                    선택한 이유를 구체적으로 입력해주세요 (필수)
+                  </label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">최소 10자</span>
+</div>
+<textarea class="w-full p-2.5 bg-surface-container-lowest rounded-lg font-body-sm text-body-sm text-on-surface-variant placeholder:text-outline cursor-not-allowed resize-none opacity-90" disabled="" placeholder="만족 또는 아쉬웠던 점을 솔직하게 작성해주세요." rows="2"></textarea>
+</div>
+</div>
+</div>
+<!-- Q5. 건의사항 (장문형) -->
+<div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm relative group hover:shadow-md transition-shadow" data-card-id="q5">
+<!-- Header -->
+<div class="flex items-center justify-between pb-3 mb-3 bg-surface-container-low/50 -mx-4 -mt-4 px-4 py-2.5 rounded-t-2xl">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline cursor-grab active:cursor-grabbing select-none text-[20px] hover:text-primary">drag_indicator</span>
+<span class="font-label-md text-label-md font-bold px-2 py-0.5 rounded-md bg-surface-container-highest text-on-surface-variant">Q5</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">서술형 (장문형)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button class="w-7 h-7 rounded-lg hover:bg-surface-container-highest flex items-center justify-center text-outline hover:text-primary transition-colors" title="질문 복사">
+<span class="material-symbols-outlined text-[17px]">content_copy</span>
+</button>
+<button class="w-7 h-7 rounded-lg hover:bg-error-container flex items-center justify-center text-outline hover:text-error transition-colors" title="질문 삭제">
+<span class="material-symbols-outlined text-[17px]">delete</span>
+</button>
+</div>
+</div>
+<!-- Content -->
+<div class="space-y-3">
+<div class="flex items-center justify-between gap-2">
+<input class="w-full bg-transparent font-title-md text-title-md text-on-surface font-semibold focus:outline-none focus:bg-surface-container-low/60 rounded-lg px-2 py-1 transition-colors" type="text" value="향후 교육에 바라는 점이나 건의사항"/>
+<!-- Optional Toggle state (OFF) -->
+<div class="flex items-center gap-1.5 shrink-0 bg-surface-container px-2 py-1 rounded-full">
+<span class="font-label-sm text-label-sm text-on-surface-variant">선택</span>
+<div class="w-8 h-4.5 bg-surface-variant rounded-full relative p-0.5 flex items-center cursor-pointer">
+<div class="w-3.5 h-3.5 bg-on-primary rounded-full shadow-sm"></div>
+</div>
+</div>
+</div>
+<!-- Large Textarea Preview -->
+<div class="relative">
+<textarea class="w-full p-3 bg-surface-container-low rounded-xl text-on-surface-variant font-body-md text-body-md cursor-not-allowed select-none opacity-80 resize-none" disabled="" placeholder="자유롭게 의견을 입력하세요 (글자 수 제한 없음)" rows="3"></textarea>
+<span class="material-symbols-outlined absolute right-3.5 bottom-3 text-outline text-[18px]">notes</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Floating Add Question Trigger Button (Bottom Action Bar) -->
+<div class="absolute bottom-0 inset-x-0 bg-surface-container-lowest/95 backdrop-blur-md p-3.5 shadow-2xl z-30 flex flex-col gap-2">
+<button class="w-full h-12 bg-primary hover:bg-primary-container text-on-primary rounded-xl font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-md shadow-primary/25 transition-transform active:scale-[0.98]" id="add-question-cta" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+            질문 추가하기
+          </button>
+<div class="flex justify-between items-center text-[11px] text-on-surface-variant px-1 font-label-sm">
+<span>자동 저장: 10초 전</span>
+<span class="text-tertiary font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> 클라우드 동기화 완료
+            </span>
+</div>
+</div>
+<!-- Interactive Question Type Selection Sheet / Modal Overlay -->
+<div class="absolute inset-0 bg-inverse-surface/60 backdrop-blur-sm z-40 hidden flex-col justify-end transition-opacity duration-300" id="type-selector-sheet">
+<div class="bg-surface-container-lowest rounded-t-3xl p-5 shadow-2xl space-y-4 animate-in slide-in-from-bottom max-h-[85%] overflow-y-auto">
+<div class="w-12 h-1 bg-surface-container-highest rounded-full mx-auto mb-1"></div>
+<div class="flex items-center justify-between">
+<div>
+<h4 class="font-headline-sm text-headline-sm text-on-surface">문항 유형 선택</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">추가할 질문의 응답 방식을 지정해주세요</p>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-outline hover:text-on-surface" id="close-sheet-btn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Type Grid Options -->
+<div class="grid grid-cols-2 gap-2.5 pt-1">
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">short_text</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">단답형</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">이름, 연락처 등 한 줄 입력</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">notes</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">장문형</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">의견 수렴, 건의사항 서술</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">radio_button_checked</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">객관식 (라디오)</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">선택지 중 1개만 택일</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">check_box</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">체크박스</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">복수 선택 가능한 문항</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">arrow_drop_down_circle</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">드롭다운</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">소속, 지역 등 긴 리스트</span>
+</div>
+<div class="p-3 rounded-xl bg-surface-container-low hover:bg-primary-fixed/40 cursor-pointer transition-colors flex flex-col gap-1 group">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">linear_scale</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">선형 배율 (1~5)</span>
+<span class="text-[11px] text-on-surface-variant leading-tight">점수 척도 단독 평가</span>
+</div>
+<!-- Highlighted Combined Type -->
+<div class="col-span-2 p-3.5 rounded-xl bg-primary-fixed/30 hover:bg-primary-fixed/60 cursor-pointer transition-colors flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[22px]">thumb_up</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-lg text-label-lg font-bold text-on-surface">만족도 5단계 + 필수 사유</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-primary text-on-primary rounded font-semibold">인기</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">점수 선택 후 필수 텍스트 사유를 입력받는 복합 패턴</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Desktop Architecture & UI Breakdown Panel -->
+<div class="flex-1 w-full flex flex-col gap-space-lg">
+<!-- Section Title Badge -->
+<div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[22px]">design_services</span>
+</div>
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface">Screen 4: 질문 편집기 &amp; 유형별 UI</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Telegram Mini App 390px 뷰포트 최적화 에디터 아키텍처</p>
+</div>
+</div>
+<span class="px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-label-sm font-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">verified</span> v2.4 Spec
+          </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+          모바일 메신저 환경에서도 손쉬운 설문 문항 구성이 가능하도록 설계된 터치 친화적 질문 편집기입니다. 
+          드롭다운, 단답형, 단일선택 라디오부터 복합형 만족도 척도까지 규격화된 카드 템플릿을 제공합니다.
+        </p>
+</div>
+<!-- Feature Deep-dive Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Card 1: Question Card Anatomy -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-2 text-primary font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px]">view_agenda</span>
+<span>질문 카드 구조 (Card Anatomy)</span>
+</div>
+<div class="space-y-2 text-body-sm font-body-sm text-on-surface-variant">
+<div class="flex items-start gap-2 bg-surface-container-low p-2.5 rounded-xl">
+<span class="font-bold text-primary shrink-0">01. 컨트롤 헤더</span>
+<span>드래그 핸들 (<code class="text-xs bg-surface-container px-1 py-0.5 rounded">drag_indicator</code>), 문항 순번 뱃지, 복사 및 삭제 퀵 액션 배치.</span>
+</div>
+<div class="flex items-start gap-2 bg-surface-container-low p-2.5 rounded-xl">
+<span class="font-bold text-primary shrink-0">02. 질문 타이틀 인라인 편집</span>
+<span>카드 전환 없이 제목 텍스트 필드를 직접 탭하여 즉시 수정 가능한 Seamless 인풋.</span>
+</div>
+<div class="flex items-start gap-2 bg-surface-container-low p-2.5 rounded-xl">
+<span class="font-bold text-primary shrink-0">03. 필수 응답 토글</span>
+<span>토글 스위치를 통해 검증 파이프라인 (<code class="text-xs bg-surface-container px-1 py-0.5 rounded">required: true</code>) 즉각 반영.</span>
+</div>
+</div>
+</div>
+<!-- Card 2: Question Type Matrix -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm flex flex-col gap-3">
+<div class="flex items-center gap-2 text-primary font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px]">category</span>
+<span>지원 질문 유형 매트릭스</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-body-sm font-body-sm">
+<div class="bg-surface-container-low p-2 rounded-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">arrow_drop_down_circle</span>
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface text-label-sm">지역 드롭다운</span>
+<span class="text-[11px] text-on-surface-variant">1회 한정 안내</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">short_text</span>
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface text-label-sm">단답형 텍스트</span>
+<span class="text-[11px] text-on-surface-variant">이름 / 연락처</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">radio_button_checked</span>
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface text-label-sm">객관식 라디오</span>
+<span class="text-[11px] text-on-surface-variant">단일 선택 목록</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-2 rounded-xl flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">thumb_up</span>
+<div class="flex flex-col">
+<span class="font-semibold text-on-surface text-label-sm">만족도 5단계</span>
+<span class="text-[11px] text-on-surface-variant">필수 사유 서술 연계</span>
+</div>
+</div>
+</div>
+<div class="bg-secondary-fixed/30 p-2.5 rounded-xl flex items-center justify-between text-label-sm">
+<span class="text-on-secondary-container font-medium">유형별 데이터 스키마 유효성 검증 완료</span>
+<span class="font-bold text-secondary">JSON Schema v7</span>
+</div>
+</div>
+<!-- Card 3: Complex Type: Satisfaction 5-Step + Reason -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl shadow-sm flex flex-col gap-3 md:col-span-2">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2 text-primary font-label-lg text-label-lg">
+<span class="material-symbols-outlined text-[20px]">stars</span>
+<span>핵심 특화 패턴: 만족도 5단계 + 필수 사유 서술형 (Q4)</span>
+</div>
+<span class="px-2 py-0.5 bg-primary/10 text-primary font-label-sm rounded-md font-semibold">복합 필드 패턴</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant">
+            점수(1~5점) 선택과 주관식 사유 작성을 하나의 질문 유닛으로 통합하여 응답자의 맥락 이탈을 방지합니다. 
+            만족도 척도 버튼 탭 시 실시간 햅틱 피드백(<code class="text-xs bg-surface-container px-1.5 py-0.5 rounded text-primary">Telegram.WebApp.HapticFeedback.impactOccurred('light')</code>)이 발생하며 사유 입력 텍스트영역으로 포커스가 부드럽게 유도됩니다.
+          </p>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+<div class="p-3 bg-surface-container-low rounded-xl">
+<span class="font-label-md text-label-md font-bold text-on-surface block mb-1">인터랙티브 척도 5점</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">390px 뷰포트에 맞춘 5열 그리드 분할로 엄지 도달 편의성 확보.</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-xl">
+<span class="font-label-md text-label-md font-bold text-on-surface block mb-1">종속 검증 로직</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">척도 선택 완료 전 사유 입력란 활성화 제어 및 최소 글자수 유효성 검사.</span>
+</div>
+<div class="p-3 bg-surface-container-low rounded-xl">
+<span class="font-label-md text-label-md font-bold text-on-surface block mb-1">모바일 최적 풋프린트</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">단일 카드 내 컴팩트 수납으로 스크롤 부하를 최소화.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Live Drag & Action Status Bar -->
+<div class="bg-surface-container-high/60 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">touch_app</span>
+<span class="font-body-md text-body-md text-on-surface font-medium">좌측 모바일 프레임의 "+ 질문 추가하기" 버튼을 눌러 바텀 시트를 직접 토글해보세요.</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 bg-primary text-on-primary font-label-md text-label-md rounded-lg shadow-sm hover:bg-primary-container transition-colors" id="demo-toggle-sheet">
+            유형 시트 열기
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Logic for Telegram Mockup -->
+<script>
+    (function() {
+      const addBtn = document.getElementById('add-question-cta');
+      const demoBtn = document.getElementById('demo-toggle-sheet');
+      const closeBtn = document.getElementById('close-sheet-btn');
+      const sheet = document.getElementById('type-selector-sheet');
+      const previewBtn = document.getElementById('preview-toggle-btn');
+
+      function openSheet() {
+        if (!sheet) return;
+        sheet.classList.remove('hidden');
+        sheet.classList.add('flex');
+      }
+
+      function closeSheet() {
+        if (!sheet) return;
+        sheet.classList.add('hidden');
+        sheet.classList.remove('flex');
+      }
+
+      if (addBtn) addBtn.addEventListener('click', openSheet);
+      if (demoBtn) demoBtn.addEventListener('click', openSheet);
+      if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+
+      // Close when clicking backdrop
+      if (sheet) {
+        sheet.addEventListener('click', function(e) {
+          if (e.target === sheet) closeSheet();
+        });
+      }
+
+      // Preview toggle feedback
+      if (previewBtn) {
+        previewBtn.addEventListener('click', function() {
+          const isPreviewing = previewBtn.classList.contains('bg-primary');
+          if (isPreviewing) {
+            previewBtn.classList.remove('bg-primary', 'text-on-primary');
+            previewBtn.classList.add('bg-surface-container-high', 'text-on-surface');
+            previewBtn.querySelector('.material-symbols-outlined').classList.add('text-primary');
+          } else {
+            previewBtn.classList.add('bg-primary', 'text-on-primary');
+            previewBtn.classList.remove('bg-surface-container-high', 'text-on-surface');
+            previewBtn.querySelector('.material-symbols-outlined').classList.remove('text-primary');
+          }
+        });
+      }
+    })();
+  </script>
+</div></main><footer class="w-full bg-surface-container-low py-space-xl"><div class="w-full px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md text-center md:text-left"><div class="flex flex-col gap-space-xs"><span class="font-label-lg text-label-lg text-on-surface">FormGram Telegram Mini App UI/UX System</span><span class="font-body-sm text-body-sm text-on-surface-variant">Designed for Telegram Mobile Webview (390px Viewport) &amp; Desktop Client Overlays.</span></div><div class="flex items-center gap-space-md font-label-md text-label-md text-on-surface-variant"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>TG Mini App Verified</span><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-primary">touch_app</span>Haptic Touch Ready</span><span>© 2025 FormGram Inc.</span></div></div></footer></body></html>
