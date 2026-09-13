@@ -43,13 +43,13 @@ export async function GET(
     if (!responses || responses.length === 0) {
       return NextResponse.json({
         success: true,
-        formTitle: form.title,
+        formTitle: (form as any).title,
         responses: []
       });
     }
 
     // 3. Fetch all answer rows for these responses
-    const responseIds = responses.map(r => r.id);
+    const responseIds = ((responses as any[]) || []).map(r => r.id);
     const { data: answers, error: ansErr } = await supabase
       .from('response_answers')
       .select('*')
@@ -61,21 +61,21 @@ export async function GET(
 
     // 4. Map answers back to each response
     const answersByResponseId: Record<string, any[]> = {};
-    (answers || []).forEach(ans => {
+    ((answers as any[]) || []).forEach(ans => {
       if (!answersByResponseId[ans.response_id]) {
         answersByResponseId[ans.response_id] = [];
       }
       answersByResponseId[ans.response_id].push(ans);
     });
 
-    const fullResponses = responses.map(r => ({
+    const fullResponses = ((responses as any[]) || []).map(r => ({
       ...r,
       answers: answersByResponseId[r.id] || []
     }));
 
     return NextResponse.json({
       success: true,
-      formTitle: form.title,
+      formTitle: (form as any).title,
       responses: fullResponses
     });
   } catch (error: any) {
