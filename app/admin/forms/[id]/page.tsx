@@ -261,9 +261,47 @@ export default function AdminFormDetailPage() {
     handleCopy(exportText, 'all_responses');
   };
 
-  const handleDownloadCsv = () => {
+  const handleDownloadCsv = async () => {
     if (typeof window === 'undefined') return;
-    window.open(`/api/admin/forms/${formId}/export`, '_blank');
+    try {
+      const headers: Record<string, string> = {};
+      const initData = window.Telegram?.WebApp?.initData;
+      if (initData) {
+        headers['x-telegram-init-data'] = initData;
+      }
+      const testUserId = localStorage.getItem('formgram_test_user_id');
+      if (testUserId) {
+        headers['x-telegram-user-id'] = testUserId;
+      }
+
+      let exportUrl = `/api/admin/forms/${formId}/export`;
+      if (testUserId && !initData) {
+        exportUrl += `?user_id=${testUserId}`;
+      }
+
+      const res = await fetch(exportUrl, { headers });
+      if (!res.ok) {
+        let errMessage = 'CSV 다운로드 권한이 없거나 실패했습니다.';
+        try {
+          const errJson = await res.json();
+          if (errJson.error) errMessage = errJson.error;
+        } catch (e) {}
+        alert(errMessage);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const safeTitle = (form?.title || 'survey').replace(/[^a-zA-Z0-9가-힣]/g, '_');
+      a.download = `FormGram_${safeTitle}_responses.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('CSV export failed:', err);
+      alert('CSV 다운로드 중 오류가 발생했습니다.');
+    }
   };
 
   const handleDownloadJson = () => {

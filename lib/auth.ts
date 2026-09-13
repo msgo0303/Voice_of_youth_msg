@@ -15,8 +15,16 @@ export interface AuthSession {
  * Extract initData from request header or body and verify it
  */
 export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthSession> {
-  const initData = req.headers.get('x-telegram-init-data') || req.headers.get('authorization')?.replace('Bearer ', '');
-  const telegramUserIdHeader = req.headers.get('x-telegram-user-id');
+  const searchParams = req.nextUrl?.searchParams;
+  const initData =
+    req.headers.get('x-telegram-init-data') ||
+    req.headers.get('authorization')?.replace('Bearer ', '') ||
+    searchParams?.get('initData') ||
+    '';
+  const telegramUserIdHeader =
+    req.headers.get('x-telegram-user-id') ||
+    searchParams?.get('user_id') ||
+    '';
 
   // 1. Try initData first (Inside Telegram Mini App)
   if (initData) {
