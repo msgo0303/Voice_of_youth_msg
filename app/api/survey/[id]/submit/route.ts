@@ -130,37 +130,64 @@ export async function POST(
       return NextResponse.json({ error: `답변 상세 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
-    // 7. Step 11: Send Telegram Notification to target chat & topic
+    // 7. Send Telegram Notification to target chat & topic
     let telegramMessageId: number | null = null;
-    if (form.response_chat_id) {
-      try {
-        // Build readable response summary text
-        let messageText = `📋 *[${form.title}]*\n\n`;
+    try {
+      const escapeHtml = (str: string) =>
+        String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;');
 
-        questions.forEach((q, idx) => {
-          const ansVal = answers[q.id] || '(응답 없음)';
-          messageText += `*Q${idx + 1}. ${q.title}*\n↳ ${ansVal}\n\n`;
-        });
+      let targetChatId = form.response_chat_id;
+      let targetTopicId = form.response_topic_id;
 
-        const telegramRes = await sendTelegramBotMessage({
-          chat_id: form.response_chat_id,
-          message_thread_id: form.response_topic_id || undefined,
-          text: messageText,
-          parse_mode: 'Markdown'
-        });
+      // Fallback: If form does not have response_chat_id set, lookup forum_topics table or use default
+      if (!targetChatId) {
+        const { data: cachedTopic } = await supabase
+          .from('forum_topics')
+          .select('chat_id, topic_id')
+          .limit(1)
+          .maybeSingle();
 
-        if (telegramRes.ok && telegramRes.result?.message_id) {
-          telegramMessageId = telegramRes.result.message_id;
-
-          // Save Telegram Message ID to response row
-          await supabase
-            .from('responses')
-            .update({ telegram_message_id: telegramMessageId })
-            .eq('id', newResponse.id);
+        if (cachedTopic) {
+          targetChatId = cachedTopic.chat_id;
+          if (!targetTopicId) targetTopicId = cachedTopic.topic_id;
+        } else {
+          targetChatId = process.env.TELEGRAM_CHAT_ID || 1284576145;
         }
-      } catch (tgErr) {
-        console.warn('Failed to dispatch Telegram response notification:', tgErr);
       }
+
+      let messageText = `📋 <b>[설문 응답 제출 알림]</b>\n`;
+      messageText += `📌 <b>설문 제목</b>: ${escapeHtml(form.title)}\n`;
+      messageText += `👤 <b>응답자</b>: ${escapeHtml(user.first_name || '이용자')}${user.username ? ` (@${escapeHtml(user.username)})` : ''}\n`;
+      messageText += `🕒 <b>일시</b>: ${new Date().toLocaleString('ko-KR')}\n\n`;
+
+      questions.forEach((q, idx) => {
+        const ansVal = answers[q.id] || '(응답 없음)';
+        messageText += `<b>Q${idx + 1}. ${escapeHtml(q.title)}</b>\n↳ ${escapeHtml(ansVal)}\n\n`;
+      });
+
+      const telegramRes = await sendTelegramBotMessage({
+        chat_id: targetChatId,
+        message_thread_id: targetTopicId || undefined,
+        text: messageText,
+        parse_mode: 'HTML'
+      });
+
+      if (telegramRes.ok && telegramRes.result?.message_id) {
+        telegramMessageId = telegramRes.result.message_id;
+
+        // Save Telegram Message ID to response row
+        await supabase
+          .from('responses')
+          .update({ telegram_message_id: telegramMessageId })
+          .eq('id', newResponse.id);
+      } else {
+        console.warn('Telegram bot sendMessage failed:', telegramRes.error);
+      }
+    } catch (tgErr) {
+      console.warn('Failed to dispatch Telegram response notification:', tgErr);
     }
 
     return NextResponse.json({

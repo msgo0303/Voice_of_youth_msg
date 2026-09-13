@@ -189,3 +189,50 @@ export async function PUT(
   }
 }
 
+// PATCH /api/admin/forms/[id] - Quick update form status (ACTIVE / CLOSED / ARCHIVED)
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { response } = await requireAdmin(req);
+  if (response) return response;
+
+  const formId = params.id;
+  if (!formId) {
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
+  }
+
+  try {
+    const body = await req.json();
+    const { status } = body;
+
+    if (!['ACTIVE', 'CLOSED', 'ARCHIVED'].includes(status)) {
+      return NextResponse.json({ error: '유효하지 않은 설문 상태입니다.' }, { status: 400 });
+    }
+
+    const supabase = getServiceSupabase();
+    const { data: form, error } = await supabase
+      .from('forms')
+      .update({
+        status,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', formId)
+      .select()
+      .single();
+
+    if (error || !form) {
+      return NextResponse.json({ error: error?.message || '상태 변경 실패' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `설문 상태가 [${status}] (으)로 변경되었습니다.`,
+      form
+    });
+  } catch (error: any) {
+    console.error('Patch form status error:', error);
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
