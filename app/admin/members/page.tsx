@@ -6,7 +6,7 @@ import { Admin, AdminRequest } from '@/types/database';
 import { Users, UserPlus, CheckCircle, XCircle, Shield, UserX, Clock } from 'lucide-react';
 
 export default function AdminMembersPage() {
-  const { role, initData } = useTelegramAuth();
+  const { role, initData, telegramUserId, isAuthenticated } = useTelegramAuth();
   const [requests, setRequests] = useState<AdminRequest[]>([]);
   const [members, setMembers] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +15,13 @@ export default function AdminMembersPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const headers: Record<string, string> = {};
+      if (initData) headers['x-telegram-init-data'] = initData;
+      if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
       const [reqRes, memRes] = await Promise.all([
-        fetch('/api/admin/requests', { headers: { 'x-telegram-init-data': initData } }),
-        fetch('/api/admin/members', { headers: { 'x-telegram-init-data': initData } })
+        fetch('/api/admin/requests', { headers }),
+        fetch('/api/admin/members', { headers })
       ]);
 
       const reqJson = await reqRes.json();
@@ -33,12 +37,12 @@ export default function AdminMembersPage() {
   };
 
   useEffect(() => {
-    if (initData && role === 'SUPER_ADMIN') {
+    if ((isAuthenticated || initData || telegramUserId) && role === 'SUPER_ADMIN') {
       fetchData();
     } else {
       setLoading(false);
     }
-  }, [initData, role]);
+  }, [initData, telegramUserId, isAuthenticated, role]);
 
   const handleApprove = async (id: string) => {
     if (!confirm('이 관리자 신청을 승인하시겠습니까?')) return;

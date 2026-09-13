@@ -29,7 +29,7 @@ interface DashboardData {
 }
 
 export default function AdminDashboardPage() {
-  const { user, role, initData } = useTelegramAuth();
+  const { user, role, initData, telegramUserId, isAuthenticated } = useTelegramAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -37,11 +37,11 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     async function fetchDashboard() {
       try {
-        const res = await fetch('/api/admin/dashboard', {
-          headers: {
-            'x-telegram-init-data': initData
-          }
-        });
+        const headers: Record<string, string> = {};
+        if (initData) headers['x-telegram-init-data'] = initData;
+        if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+        const res = await fetch('/api/admin/dashboard', { headers });
 
         const json = await res.json();
         if (res.ok && json.success) {
@@ -56,12 +56,12 @@ export default function AdminDashboardPage() {
       }
     }
 
-    if (initData) {
+    if (isAuthenticated || initData || telegramUserId) {
       fetchDashboard();
     } else {
       setLoading(false);
     }
-  }, [initData]);
+  }, [initData, telegramUserId, isAuthenticated]);
 
   const canCreateForm = role === 'SUPER_ADMIN' || role === 'ADMIN';
 

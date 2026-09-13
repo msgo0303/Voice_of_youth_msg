@@ -17,7 +17,7 @@ interface FormItem {
 }
 
 export default function AdminFormsPage() {
-  const { role, initData } = useTelegramAuth();
+  const { role, initData, telegramUserId, isAuthenticated } = useTelegramAuth();
   const [forms, setForms] = useState<FormItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
@@ -26,11 +26,11 @@ export default function AdminFormsPage() {
   const fetchForms = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/forms?status=${statusFilter}&query=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'x-telegram-init-data': initData
-        }
-      });
+      const headers: Record<string, string> = {};
+      if (initData) headers['x-telegram-init-data'] = initData;
+      if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+      const res = await fetch(`/api/admin/forms?status=${statusFilter}&query=${encodeURIComponent(searchQuery)}`, { headers });
       const json = await res.json();
       if (res.ok && json.success) {
         setForms(json.forms || []);
@@ -43,12 +43,12 @@ export default function AdminFormsPage() {
   };
 
   useEffect(() => {
-    if (initData) {
+    if (isAuthenticated || initData || telegramUserId) {
       fetchForms();
     } else {
       setLoading(false);
     }
-  }, [initData, statusFilter]);
+  }, [initData, telegramUserId, isAuthenticated, statusFilter]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

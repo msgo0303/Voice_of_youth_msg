@@ -16,18 +16,80 @@ export interface AuthSession {
  */
 export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthSession> {
   const initData = req.headers.get('x-telegram-init-data') || req.headers.get('authorization')?.replace('Bearer ', '');
+  const telegramUserIdHeader = req.headers.get('x-telegram-user-id');
 
   if (!initData) {
+    if (telegramUserIdHeader) {
+      return getAuthSessionByUserId(Number(telegramUserIdHeader));
+    }
+
     return {
       authenticated: false,
       user: null,
       admin: null,
       role: 'USER',
-      error: 'Missing initData in x-telegram-init-data or Authorization header'
+      error: 'Missing initData or x-telegram-user-id header'
     };
   }
 
   return getAuthSession(initData);
+}
+
+/**
+ * Direct lookup by Telegram User ID (used for external browser fallback verification against Supabase DB)
+ */
+export async function getAuthSessionByUserId(userId: number): Promise<AuthSession> {
+  if (!userId || isNaN(userId)) {
+    return {
+      authenticated: false,
+      user: null,
+      admin: null,
+      role: 'USER',
+      error: 'Invalid Telegram User ID'
+    };
+  }
+
+  try {
+    const supabase = getServiceSupabase();
+    const { data: admin, error } = await supabase
+      .from('admins')
+      .select('*')
+      .eq('telegram_user_id', userId)
+      .eq('status', 'ACTIVE')
+      .single();
+
+    const mockUser: TelegramUser = {
+      id: userId,
+      first_name: admin?.telegram_first_name || '관리자',
+      last_name: '',
+      username: admin?.telegram_username || undefined
+    };
+
+    if (error || !admin) {
+      return {
+        authenticated: true,
+        user: mockUser,
+        admin: null,
+        role: 'USER'
+      };
+    }
+
+    return {
+      authenticated: true,
+      user: mockUser,
+      admin: admin as Admin,
+      role: (admin as Admin).role
+    };
+  } catch (err: any) {
+    console.error('Failed to lookup admin by User ID in Supabase:', err);
+    return {
+      authenticated: false,
+      user: null,
+      admin: null,
+      role: 'USER',
+      error: err.message
+    };
+  }
 }
 
 /**
