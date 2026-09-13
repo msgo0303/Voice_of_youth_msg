@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { QuestionType, ForumTopic } from '@/types/database';
+import { getTelegramMiniAppUrl } from '@/lib/telegramLink';
 import {
   Sparkles,
   Calendar,
@@ -21,7 +22,11 @@ import {
   CheckSquare,
   Sliders,
   Smile,
-  ArrowLeft
+  ArrowLeft,
+  Copy,
+  Check,
+  ExternalLink,
+  Share2
 } from 'lucide-react';
 
 interface EditableQuestion {
@@ -81,6 +86,8 @@ export default function NewFormBuilderPage() {
   // UI loading states
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdForm, setCreatedForm] = useState<{ id: string; title: string } | null>(null);
+  const [copiedType, setCopiedType] = useState<string | null>(null);
 
   const getAuthHeaders = () => {
     const headers: Record<string, string> = {
@@ -89,6 +96,12 @@ export default function NewFormBuilderPage() {
     if (initData) headers['x-telegram-init-data'] = initData;
     if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
     return headers;
+  };
+
+  const handleCopyLink = (text: string, typeTag: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedType(typeTag);
+    setTimeout(() => setCopiedType(null), 2000);
   };
 
   useEffect(() => {
@@ -229,9 +242,8 @@ export default function NewFormBuilderPage() {
 
       const json = await res.json();
 
-      if (res.ok && json.success) {
-        alert('설문이 성공적으로 생성되고 즉시 활성화(ACTIVE) 되었습니다!');
-        router.push('/admin/forms');
+      if (res.ok && json.success && json.form) {
+        setCreatedForm({ id: json.form.id, title: json.form.title });
       } else {
         setError(json.error || '설문 저장 실패');
       }
@@ -583,6 +595,95 @@ export default function NewFormBuilderPage() {
           </div>
         </div>
       </div>
+
+      {/* Success Modal with Share & Copy Links */}
+      {createdForm && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-100 p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-7 h-7" />
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900">설문이 성공적으로 생성되었습니다!</h2>
+              <p className="text-xs text-slate-500">
+                작성하신 <span className="font-bold text-slate-800">[{createdForm.title}]</span> 설문이 즉시 활성화되었습니다.<br />
+                아래 링크를 복사하여 텔레그램 채팅방이나 대상에게 공유하세요.
+              </p>
+            </div>
+
+            {/* Link Copy Section */}
+            <div className="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+              {/* 1. Telegram Mini App Deep Link */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                  <span>📱 텔레그램 미니앱 전용 링크</span>
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={getTelegramMiniAppUrl(createdForm.id)}
+                    className="flex-1 bg-white border border-slate-200 rounded-lg text-xs px-3 py-2 text-slate-700 font-mono focus:outline-none"
+                  />
+                  <button
+                    onClick={() => handleCopyLink(getTelegramMiniAppUrl(createdForm.id), 'tg')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1 border ${
+                      copiedType === 'tg'
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600'
+                    }`}
+                  >
+                    {copiedType === 'tg' ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedType === 'tg' ? '복사됨!' : '복사'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Direct Web Survey Link */}
+              <div className="space-y-1.5 pt-1">
+                <label className="text-xs font-bold text-slate-700 flex items-center space-x-1.5">
+                  <span>🌐 웹 브라우저 직접 링크</span>
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={typeof window !== 'undefined' ? `${window.location.origin}/survey/${createdForm.id}` : `/survey/${createdForm.id}`}
+                    className="flex-1 bg-white border border-slate-200 rounded-lg text-xs px-3 py-2 text-slate-700 font-mono focus:outline-none"
+                  />
+                  <button
+                    onClick={() => handleCopyLink(typeof window !== 'undefined' ? `${window.location.origin}/survey/${createdForm.id}` : `/survey/${createdForm.id}`, 'web')}
+                    className={`px-3 py-2 rounded-lg text-xs font-bold transition flex items-center space-x-1 border ${
+                      copiedType === 'web'
+                        ? 'bg-emerald-600 text-white border-emerald-600'
+                        : 'bg-slate-700 text-white hover:bg-slate-800 border-slate-700'
+                    }`}
+                  >
+                    {copiedType === 'web' ? <Check className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                    <span>{copiedType === 'web' ? '복사됨!' : '복사'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3 pt-2">
+              <button
+                onClick={() => router.push('/admin/forms')}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm py-2.5 rounded-xl transition text-center"
+              >
+                설문 목록으로 이동
+              </button>
+              <button
+                onClick={() => router.push(`/survey/${createdForm.id}`)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-2.5 rounded-xl transition text-center"
+              >
+                설문 바로보기 ↗
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { FormStatus } from '@/types/database';
-import { Search, Plus, FileText, Lock, Archive, Eye } from 'lucide-react';
+import { getTelegramMiniAppUrl } from '@/lib/telegramLink';
+import { Search, Plus, FileText, Lock, Archive, Eye, Copy, Check, ExternalLink, Share2 } from 'lucide-react';
 
 interface FormItem {
   id: string;
@@ -22,6 +23,7 @@ export default function AdminFormsPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const fetchForms = async () => {
     setLoading(true);
@@ -55,6 +57,12 @@ export default function AdminFormsPage() {
     fetchForms();
   };
 
+  const handleCopy = (text: string, idTag: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(idTag);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const canEditForm = role === 'SUPER_ADMIN' || role === 'ADMIN';
 
   return (
@@ -63,7 +71,7 @@ export default function AdminFormsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-xl font-bold text-slate-900">설문 관리</h1>
-          <p className="text-sm text-slate-500">생성된 설문을 관리하고 응답 상태를 조회합니다.</p>
+          <p className="text-sm text-slate-500">생성된 설문을 관리하고, 응답 링크를 복사하여 공유할 수 있습니다.</p>
         </div>
 
         {canEditForm ? (
@@ -123,55 +131,80 @@ export default function AdminFormsPage() {
           <div className="p-8 text-center text-sm text-slate-500">설문 목록을 불러오는 중...</div>
         ) : forms.length > 0 ? (
           <div className="divide-y divide-slate-100">
-            {forms.map((form) => (
-              <div key={form.id} className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition">
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span
-                      className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
-                        form.status === 'ACTIVE'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : form.status === 'CLOSED'
-                          ? 'bg-slate-100 text-slate-700'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {form.status}
+            {forms.map((form) => {
+              const tgUrl = getTelegramMiniAppUrl(form.id);
+              const webUrl = typeof window !== 'undefined' ? `${window.location.origin}/survey/${form.id}` : `/survey/${form.id}`;
+
+              return (
+                <div key={form.id} className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/60 transition">
+                  <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
+                          form.status === 'ACTIVE'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : form.status === 'CLOSED'
+                            ? 'bg-slate-100 text-slate-700'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {form.status}
+                      </span>
+                      <h3 className="font-bold text-slate-900 text-base truncate">{form.title}</h3>
+                    </div>
+
+                    {form.description && <p className="text-xs text-slate-600 line-clamp-1">{form.description}</p>}
+
+                    <div className="flex items-center space-x-4 text-xs text-slate-400 pt-0.5">
+                      <span>생성일: {new Date(form.created_at).toLocaleDateString('ko-KR')}</span>
+                      {form.deadline_at && <span>마감일: {new Date(form.deadline_at).toLocaleDateString('ko-KR')}</span>}
+                    </div>
+
+                    {/* Quick Link Buttons Row */}
+                    <div className="pt-2 flex items-center space-x-2 flex-wrap gap-y-1.5">
+                      <button
+                        onClick={() => handleCopy(tgUrl, `tg-${form.id}`)}
+                        className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                          copiedId === `tg-${form.id}`
+                            ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                            : 'bg-blue-50/80 border-blue-200 text-blue-700 hover:bg-blue-100'
+                        }`}
+                      >
+                        {copiedId === `tg-${form.id}` ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedId === `tg-${form.id}` ? '텔레그램 링크 복사됨!' : '📋 텔레그램 링크 복사'}</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleCopy(webUrl, `web-${form.id}`)}
+                        className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border transition ${
+                          copiedId === `web-${form.id}`
+                            ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                            : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                        }`}
+                      >
+                        {copiedId === `web-${form.id}` ? <Check className="w-3.5 h-3.5" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                        <span>{copiedId === `web-${form.id}` ? '웹 링크 복사됨!' : '🔗 웹 링크 복사'}</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2.5 self-end sm:self-auto shrink-0">
+                    <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg">
+                      {form.responseCount}건 응답
                     </span>
-                    <h3 className="font-bold text-slate-900 text-base">{form.title}</h3>
-                  </div>
 
-                  {form.description && <p className="text-xs text-slate-600 line-clamp-1">{form.description}</p>}
-
-                  <div className="flex items-center space-x-4 text-xs text-slate-400">
-                    <span>생성일: {new Date(form.created_at).toLocaleDateString('ko-KR')}</span>
-                    {form.deadline_at && <span>마감일: {new Date(form.deadline_at).toLocaleDateString('ko-KR')}</span>}
+                    {canEditForm && (
+                      <Link
+                        href={`/admin/forms/${form.id}/edit`}
+                        className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition"
+                      >
+                        편집
+                      </Link>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex items-center space-x-3 self-end sm:self-auto shrink-0">
-                  <span className="text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg">
-                    {form.responseCount}건 응답
-                  </span>
-
-                  <Link
-                    href={`/admin/forms/${form.id}`}
-                    className="px-3.5 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-semibold transition"
-                  >
-                    응답/통계
-                  </Link>
-
-                  {canEditForm && (
-                    <Link
-                      href={`/admin/forms/${form.id}/edit`}
-                      className="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold transition"
-                    >
-                      편집
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="p-12 text-center text-slate-500">
@@ -183,3 +216,4 @@ export default function AdminFormsPage() {
     </div>
   );
 }
+
