@@ -76,6 +76,8 @@ export default function NewFormBuilderPage() {
   const [deadlineAt, setDeadlineAt] = useState('');
   const [completionMessage, setCompletionMessage] = useState('본 설문에 응답해 주셔서 진심으로 감사드립니다.');
   const [selectedTopicId, setSelectedTopicId] = useState<string>('');
+  const [customChatId, setCustomChatId] = useState<string>('');
+  const [customTopicId, setCustomTopicId] = useState<string>('');
 
   // Forum Topics Cache
   const [topics, setTopics] = useState<ForumTopic[]>([]);
@@ -94,7 +96,14 @@ export default function NewFormBuilderPage() {
       'Content-Type': 'application/json'
     };
     if (initData) headers['x-telegram-init-data'] = initData;
-    if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+    const effectiveUserId =
+      telegramUserId ||
+      (typeof window !== 'undefined' ? localStorage.getItem('formgram_test_user_id') : null);
+
+    if (effectiveUserId) {
+      headers['x-telegram-user-id'] = effectiveUserId.toString();
+    }
     return headers;
   };
 
@@ -221,8 +230,8 @@ export default function NewFormBuilderPage() {
       description,
       deadline_at: hasDeadline && deadlineAt ? new Date(deadlineAt).toISOString() : null,
       completion_message: completionMessage,
-      response_chat_id: selectedTopic ? selectedTopic.chat_id : null,
-      response_topic_id: selectedTopic ? selectedTopic.topic_id : null,
+      response_chat_id: selectedTopic ? selectedTopic.chat_id : (customChatId ? Number(customChatId) : null),
+      response_topic_id: selectedTopic ? selectedTopic.topic_id : (customTopicId ? Number(customTopicId) : null),
       questions: questions.map((q, idx) => ({
         title: q.title,
         description: q.description,
@@ -367,7 +376,7 @@ export default function NewFormBuilderPage() {
             )}
           </div>
 
-          {/* Telegram Topic Select */}
+          {/* Telegram Topic Select & Manual Input */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
             <label className="text-xs font-bold text-slate-800 flex items-center space-x-1.5">
               <Send className="w-4 h-4 text-blue-600" />
@@ -378,13 +387,33 @@ export default function NewFormBuilderPage() {
               onChange={(e) => setSelectedTopicId(e.target.value)}
               className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
             >
-              <option value="">토픽 지정 안 함 (전체/기본 채팅방 전송)</option>
+              <option value="">토픽 선택 (등록된 목록에서 선택)</option>
               {topics.map((t) => (
                 <option key={t.id} value={t.topic_id}>
                   📌 토픽 #{t.topic_id}: {t.topic_name}
                 </option>
               ))}
+              <option value="custom">✍️ 직접 수동 입력 (Chat ID & Topic ID)</option>
             </select>
+
+            {selectedTopicId === 'custom' && (
+              <div className="pt-2 grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Chat ID (예: -100123456789)"
+                  value={customChatId}
+                  onChange={(e) => setCustomChatId(e.target.value)}
+                  className="text-xs px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-mono"
+                />
+                <input
+                  type="text"
+                  placeholder="Topic ID (예: 2)"
+                  value={customTopicId}
+                  onChange={(e) => setCustomTopicId(e.target.value)}
+                  className="text-xs px-3 py-1.5 bg-white border border-slate-300 rounded-lg font-mono"
+                />
+              </div>
+            )}
           </div>
         </div>
 

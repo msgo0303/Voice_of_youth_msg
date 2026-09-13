@@ -30,7 +30,14 @@ export default function AdminFormsPage() {
     try {
       const headers: Record<string, string> = {};
       if (initData) headers['x-telegram-init-data'] = initData;
-      if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+      const effectiveUserId =
+        telegramUserId ||
+        (typeof window !== 'undefined' ? localStorage.getItem('formgram_test_user_id') : null);
+
+      if (effectiveUserId) {
+        headers['x-telegram-user-id'] = effectiveUserId.toString();
+      }
 
       const res = await fetch(`/api/admin/forms?status=${statusFilter}&query=${encodeURIComponent(searchQuery)}`, { headers });
       const json = await res.json();

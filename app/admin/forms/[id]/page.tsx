@@ -56,12 +56,20 @@ export default function AdminFormDetailPage() {
   const [activeTab, setActiveTab] = useState<'info' | 'responses'>('info');
   const [responses, setResponses] = useState<ResponseDetail[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
+  const [responsesError, setResponsesError] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
 
   const getAuthHeaders = () => {
     const headers: Record<string, string> = {};
     if (initData) headers['x-telegram-init-data'] = initData;
-    if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+    const effectiveUserId =
+      telegramUserId ||
+      (typeof window !== 'undefined' ? localStorage.getItem('formgram_test_user_id') : null);
+
+    if (effectiveUserId) {
+      headers['x-telegram-user-id'] = effectiveUserId.toString();
+    }
     return headers;
   };
 
@@ -91,14 +99,17 @@ export default function AdminFormDetailPage() {
 
   const fetchResponses = async () => {
     setLoadingResponses(true);
+    setResponsesError(null);
     try {
       const res = await fetch(`/api/admin/forms/${formId}/responses`, { headers: getAuthHeaders() });
       const json = await res.json();
       if (res.ok && json.success) {
         setResponses(json.responses || []);
+      } else {
+        setResponsesError(json.error || '답변 목록을 불러오지 못했습니다.');
       }
-    } catch (err) {
-      console.error('Failed to fetch responses:', err);
+    } catch (err: any) {
+      setResponsesError(err.message || '네트워크 오류가 발생했습니다.');
     } finally {
       setLoadingResponses(false);
     }
@@ -420,6 +431,12 @@ export default function AdminFormDetailPage() {
               </button>
             )}
           </div>
+
+          {responsesError && (
+            <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl">
+              ⚠️ {responsesError}
+            </div>
+          )}
 
           {loadingResponses ? (
             <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-sm text-slate-500">
