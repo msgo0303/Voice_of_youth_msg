@@ -1,15 +1,14 @@
 export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'VIEWER';
 export type AdminStatus = 'ACTIVE' | 'INACTIVE' | 'PENDING';
-export type FormStatus = 'DRAFT' | 'ACTIVE' | 'PUBLISHED' | 'CLOSED' | 'ARCHIVED';
+export type FormStatus = 'ACTIVE' | 'CLOSED' | 'ARCHIVED';
 export type QuestionType =
-  | 'TEXT'
   | 'SHORT_TEXT'
   | 'LONG_TEXT'
   | 'SINGLE_CHOICE'
   | 'MULTIPLE_CHOICE'
-  | 'RATING'
-  | 'NUMERIC'
-  | 'CHECKBOX';
+  | 'DROPDOWN'
+  | 'LINEAR_SCALE'
+  | 'SATISFACTION';
 
 export type AdminRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -33,7 +32,6 @@ export interface Form {
   completion_message?: string | null;
   response_chat_id?: number | null;
   response_topic_id?: number | null;
-  created_by?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -41,22 +39,22 @@ export interface Form {
 export interface Question {
   id: string;
   form_id: string;
-  question_text: string;
+  title: string;
   description?: string | null;
-  question_type: QuestionType;
+  type: QuestionType;
   options?: string[] | Record<string, any> | null;
-  is_required: boolean;
+  required: boolean;
   order_index: number;
   created_at: string;
   updated_at: string;
 }
 
 export interface QuestionSnapshot {
-  question_text: string;
+  title: string;
   description?: string | null;
-  question_type: QuestionType;
+  type: QuestionType;
   options?: any;
-  is_required: boolean;
+  required: boolean;
 }
 
 export interface Response {
@@ -78,7 +76,7 @@ export interface ResponseAnswer {
   question_id: string;
   question_snapshot: QuestionSnapshot;
   answer_value: string;
-  created_at: string;
+  created_at?: string;
 }
 
 export interface AdminRequest {

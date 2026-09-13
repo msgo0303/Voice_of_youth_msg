@@ -1,4 +1,4 @@
--- Voice of Youth Msg - Supabase PostgreSQL Schema DDL (v1.0 Specification)
+-- Voice of Youth Msg - Supabase PostgreSQL Schema DDL (v1.0 Live Verified Schema)
 
 -- 1. Admins Table
 CREATE TABLE IF NOT EXISTS public.admins (
@@ -17,12 +17,11 @@ CREATE TABLE IF NOT EXISTS public.forms (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT,
-    status TEXT NOT NULL CHECK (status IN ('DRAFT', 'ACTIVE', 'PUBLISHED', 'CLOSED', 'ARCHIVED')) DEFAULT 'DRAFT',
+    status TEXT NOT NULL CHECK (status IN ('ACTIVE', 'CLOSED', 'ARCHIVED')) DEFAULT 'ACTIVE',
     deadline_at TIMESTAMPTZ,
     completion_message TEXT,
     response_chat_id BIGINT,
     response_topic_id INT,
-    created_by UUID REFERENCES public.admins(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -31,11 +30,11 @@ CREATE TABLE IF NOT EXISTS public.forms (
 CREATE TABLE IF NOT EXISTS public.questions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     form_id UUID NOT NULL REFERENCES public.forms(id) ON DELETE CASCADE,
-    question_text TEXT NOT NULL,
+    title TEXT NOT NULL,
     description TEXT,
-    question_type TEXT NOT NULL CHECK (question_type IN ('TEXT', 'SHORT_TEXT', 'LONG_TEXT', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'RATING', 'NUMERIC', 'CHECKBOX')) DEFAULT 'SHORT_TEXT',
+    type TEXT NOT NULL CHECK (type IN ('SHORT_TEXT', 'LONG_TEXT', 'SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'DROPDOWN', 'LINEAR_SCALE', 'SATISFACTION')) DEFAULT 'SHORT_TEXT',
     options JSONB DEFAULT '[]'::jsonb,
-    is_required BOOLEAN DEFAULT true,
+    required BOOLEAN DEFAULT true,
     order_index INT DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
