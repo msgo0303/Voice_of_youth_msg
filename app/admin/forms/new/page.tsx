@@ -356,11 +356,12 @@ export default function NewFormBuilderPage() {
             <select
               value={selectedTopicId}
               onChange={(e) => setSelectedTopicId(e.target.value)}
-              className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
             >
+              <option value="">토픽 지정 안 함 (전체/기본 채팅방 전송)</option>
               {topics.map((t) => (
                 <option key={t.id} value={t.topic_id}>
-                  Topic #{t.topic_id}: {t.topic_name}
+                  📌 토픽 #{t.topic_id}: {t.topic_name}
                 </option>
               ))}
             </select>

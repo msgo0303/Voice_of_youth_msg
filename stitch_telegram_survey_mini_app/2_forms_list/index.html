@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+
+<html lang="ko"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>FormGram Showcase</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"inverse-on-surface":"#eef0ff","on-primary":"#ffffff","tertiary-fixed":"#6ffbbe","on-tertiary":"#ffffff","secondary":"#006591","surface-bright":"#faf8ff","secondary-container":"#39b8fd","surface":"#faf8ff","tertiary":"#006242","on-secondary-fixed-variant":"#004c6e","on-tertiary-container":"#bdffdb","surface-container-lowest":"#ffffff","primary-fixed-dim":"#b4c5ff","tertiary-container":"#007d55","on-surface":"#131b2e","primary-container":"#2563eb","on-background":"#131b2e","surface-container-highest":"#dae2fd","on-secondary":"#ffffff","error":"#ba1a1a","on-secondary-fixed":"#001e2f","surface-tint":"#0053db","on-error":"#ffffff","on-tertiary-fixed":"#002113","surface-container-high":"#e2e7ff","background":"#faf8ff","surface-container":"#eaedff","on-tertiary-fixed-variant":"#005236","inverse-surface":"#283044","outline-variant":"#c3c6d7","error-container":"#ffdad6","on-primary-container":"#eeefff","on-primary-fixed":"#00174b","inverse-primary":"#b4c5ff","surface-variant":"#dae2fd","secondary-fixed":"#c9e6ff","on-surface-variant":"#434655","surface-container-low":"#f2f3ff","surface-dim":"#d2d9f4","primary":"#004ac6","outline":"#737686","tertiary-fixed-dim":"#4edea3","on-primary-fixed-variant":"#003ea8","primary-fixed":"#dbe1ff","on-error-container":"#93000a","on-secondary-container":"#004666","secondary-fixed-dim":"#89ceff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"0.75rem","gutter":"0.75rem","space-xl":"1.5rem","space-sm":"0.5rem","space-xs":"0.25rem","margin":"1rem","space-lg":"1rem"},"fontFamily":{"body-lg":["Inter"],"headline-sm":["Inter"],"label-md":["Inter"],"label-sm":["Inter"],"headline-md":["Inter"],"body-sm":["Inter"],"body-md":["Inter"],"label-lg":["Inter"],"headline-lg":["Inter"],"title-md":["Inter"]},"fontSize":{"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"500"}],"label-sm":["11px",{"lineHeight":"14px","fontWeight":"500"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"700"}],"title-md":["16px",{"lineHeight":"24px","letterSpacing":"-0.005em","fontWeight":"600"}]}}}};</script></head><body class="bg-background font-body-md text-body-md text-on-surface antialiased min-h-screen"><header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="FormGram Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VPlz7zIwp9hsHV7hYvF7_R8csRTKSy6nfAwU0dBvZEN8zYUvxTRKm5FMu5bGA7x2l8Cu6--W11VtxBIdYHq5m25-jwyHnP0PcTuDRLeJXREuxZGw295Z-wVgaNH9xbfhgzV-3OPsWh5sCyHiIO2ixBqqba8ixlxgTz0ooXIqvqXgJEWV_AA2DWigO07rzH2VHDktQ3S2VL_9Cr65dY2PMAO4p_g0DTnwrJCqhQBVP8kgT8wKhIpmEZFMQ"/><div class="flex flex-col"><span class="font-label-lg text-label-lg text-on-surface tracking-tight leading-none">FormGram (폼그램)</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-none mt-space-xs">Telegram Mini App Design Showcase</span></div></div><nav class="hidden xl:flex items-center gap-space-xs overflow-x-auto py-space-xs px-space-xs bg-surface-container-low rounded-full" data-active-classes="bg-primary-container text-on-primary-container rounded-full shadow-sm"><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="admin-dashboard" href="#">1. 관리자 대시보드</a><a aria-current="page" class="px-space-md py-space-xs font-label-md transition-colors whitespace-nowrap bg-primary-container text-on-primary-container rounded-full shadow-sm" data-path="survey-list-filters" href="#">2. 설문 목록 &amp; 필터</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="survey-builder-basic-info" href="#">3. 설문 생성 &amp; 기본정보</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="question-editor-ui-types" href="#">4. 질문 편집기 &amp; 유형별 UI</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="respondent-flow-confirm-modal" href="#">5. 사용자 설문 응답 &amp; 확인모달</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="submission-complete-my-response" href="#">6. 제출 완료 &amp; 내 응답</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="response-analytics-statistics" href="#">7. 관리자 응답 목록 &amp; 통계</a><a class="px-space-md py-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors whitespace-nowrap" data-path="survey-sharing-permission-management" href="#">8. 설문 공유 &amp; 관리자 승인 관리</a></nav><div class="flex items-center gap-space-sm min-w-max"><div class="hidden md:flex items-center gap-space-xs bg-surface-container px-space-sm py-space-xs rounded-full"><span class="font-label-sm text-label-sm text-on-surface-variant">Environment:</span><span class="font-label-sm text-label-sm text-primary">Telegram WebApp SDK v7.0</span></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-background"><div class="flex flex-col w-full">
+<!-- Desktop Layout Wrapper (Showcases realistic Telegram 390px Mobile Frame + Interactive Spec Panel) -->
+<div class="w-full max-w-7xl mx-auto px-gutter py-space-xl flex flex-col lg:flex-row items-start justify-center gap-space-xl">
+<!-- Left Column: Realistic Telegram Mini App Shell Container (390px viewport width standard) -->
+<div class="w-full flex justify-center">
+<div class="w-full max-w-[390px] bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden flex flex-col min-h-[780px] relative">
+<!-- Telegram Mini App Top Chrome (Simulated Webview Header Bar) -->
+<div class="w-full bg-surface-container-low px-space-md py-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-primary font-semibold">닫기</span>
+</div>
+<div class="flex flex-col items-center">
+<span class="font-label-md text-label-md text-on-surface font-semibold tracking-tight">FormGram Bot</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">mini app</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</div>
+</div>
+<!-- In-App Header: Title & New Survey Action -->
+<div class="w-full px-space-lg pt-space-md pb-space-sm flex items-center justify-between bg-surface-container-lowest">
+<div class="flex flex-col">
+<h1 class="font-headline-md text-headline-md text-on-surface tracking-tight font-bold">설문 관리</h1>
+<span class="font-label-sm text-label-sm text-on-surface-variant">활성 및 완료된 폼을 관리하세요</span>
+</div>
+<button class="flex items-center gap-space-xs bg-primary text-on-primary px-space-md py-space-xs rounded-full font-label-md text-label-md shadow-sm active:scale-95 transition-all" id="btnCreateNew">
+<span class="material-symbols-outlined text-[18px]">add</span>
+<span>새 설문</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="px-space-lg pt-space-xs pb-space-sm">
+<div class="relative w-full flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-outline text-[18px] pointer-events-none">search</span>
+<input class="w-full h-11 pl-10 pr-9 bg-surface-container-low rounded-xl font-body-md text-body-md text-on-surface placeholder:text-outline focus:outline-none focus:bg-surface-container transition-all" id="surveySearchInput" placeholder="설문 제목 또는 키워드 검색..." type="text"/>
+<button class="hidden absolute right-3 text-outline hover:text-on-surface flex items-center justify-center" id="clearSearchBtn">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+</div>
+</div>
+<!-- Filter Tabs & Sort Row -->
+<div class="px-space-lg pb-space-sm flex flex-col gap-space-xs">
+<!-- Segmented Pill Bar -->
+<div class="w-full flex items-center gap-space-xs overflow-x-auto py-space-xs no-scrollbar" id="tabBar">
+<button class="filter-tab active px-space-md py-1.5 rounded-full font-label-sm text-label-sm font-semibold bg-primary text-on-primary shadow-sm whitespace-nowrap transition-all" data-filter="all">
+              전체 <span class="opacity-90 ml-0.5">(8)</span>
+</button>
+<button class="filter-tab px-space-md py-1.5 rounded-full font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:text-on-surface whitespace-nowrap transition-all" data-filter="active">
+              진행 중 <span class="text-tertiary font-bold ml-0.5">(3)</span>
+</button>
+<button class="filter-tab px-space-md py-1.5 rounded-full font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:text-on-surface whitespace-nowrap transition-all" data-filter="closed">
+              종료 <span class="opacity-75 ml-0.5">(3)</span>
+</button>
+<button class="filter-tab px-space-md py-1.5 rounded-full font-label-sm text-label-sm font-medium bg-surface-container-low text-on-surface-variant hover:text-on-surface whitespace-nowrap transition-all" data-filter="archived">
+              보관 <span class="opacity-75 ml-0.5">(2)</span>
+</button>
+</div>
+<!-- Sort & Meta Row -->
+<div class="flex items-center justify-between pt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant" id="resultCountLabel">총 8개 설문</span>
+<button class="flex items-center gap-space-xs text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors" id="sortToggleBtn">
+<span class="material-symbols-outlined text-[14px]">swap_vert</span>
+<span id="sortText">생성일 순 ↓</span>
+</button>
+</div>
+</div>
+<!-- Scrollable Survey Content Area -->
+<div class="flex-1 px-space-lg pb-24 overflow-y-auto flex flex-col gap-space-md" id="surveyListContainer">
+<!-- Survey Item 1: 진행 중 (Active) -->
+<div class="survey-card bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative transition-all" data-status="active" data-title="2025 상반기 청소년부 교육 만족도 조사">
+<div class="flex items-start justify-between gap-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/15 text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                진행 중 (ACTIVE)
+              </span>
+<span class="font-label-sm text-label-sm text-primary font-bold">D-11</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">2025 상반기 청소년부 교육 만족도 조사</h2>
+<div class="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="font-semibold text-primary">응답 86건</span>
+<span>•</span>
+<span>2025.04.01 생성</span>
+<span>•</span>
+<span class="text-error font-medium">마감 2025.04.15</span>
+</div>
+</div>
+<!-- Progress spark indicator for response target -->
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-1 overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 86%;"></div>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center justify-between pt-space-xs mt-1">
+<div class="flex items-center gap-space-xs">
+<button class="action-copy-btn flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors" title="설문 링크 복사">
+<span class="material-symbols-outlined text-[15px]">link</span>
+<span>링크 복사</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors" title="통계 분석 보기">
+<span class="material-symbols-outlined text-[15px]">bar_chart</span>
+<span>통계</span>
+</button>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-low text-outline hover:text-on-surface transition-colors" title="추가 옵션">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Survey Item 2: 진행 중 (Active) -->
+<div class="survey-card bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative transition-all" data-status="active" data-title="봄맞이 봉사활동 참여 신청서">
+<div class="flex items-start justify-between gap-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/15 text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                진행 중 (ACTIVE)
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">자격 검토 중</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">봄맞이 봉사활동 참여 신청서</h2>
+<div class="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="font-semibold text-primary">응답 142건</span>
+<span>•</span>
+<span>2025.03.28 생성</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center justify-between pt-space-xs mt-1">
+<div class="flex items-center gap-space-xs">
+<button class="action-copy-btn flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">link</span>
+<span>링크 복사</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">bar_chart</span>
+<span>통계</span>
+</button>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-low text-outline hover:text-on-surface transition-colors" title="추가 옵션">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Survey Item 3: 진행 중 (Active) -->
+<div class="survey-card bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative transition-all" data-status="active" data-title="새신자 환영 세미나 사전 질문지">
+<div class="flex items-start justify-between gap-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-tertiary-container/15 text-tertiary font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                진행 중 (ACTIVE)
+              </span>
+<span class="font-label-sm text-label-sm text-primary font-bold">New</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight">새신자 환영 세미나 사전 질문지</h2>
+<div class="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="font-semibold text-primary">응답 20건</span>
+<span>•</span>
+<span>2025.04.03 생성</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center justify-between pt-space-xs mt-1">
+<div class="flex items-center gap-space-xs">
+<button class="action-copy-btn flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">link</span>
+<span>링크 복사</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">bar_chart</span>
+<span>통계</span>
+</button>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-low text-outline hover:text-on-surface transition-colors" title="추가 옵션">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Survey Item 4: 종료 (Closed) -->
+<div class="survey-card bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative transition-all" data-status="closed" data-title="2024 하반기 교사 역량강화 워크숍 피드백">
+<div class="flex items-start justify-between gap-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span>
+                종료 (CLOSED)
+              </span>
+<span class="font-label-sm text-label-sm text-outline">마감 완료</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-title-md text-title-md text-on-surface font-semibold leading-tight opacity-90">2024 하반기 교사 역량강화 워크숍 피드백</h2>
+<div class="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span class="font-medium text-on-surface">응답 64건</span>
+<span>•</span>
+<span>2024.12.20 종료</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center justify-between pt-space-xs mt-1">
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface text-label-sm font-label-sm font-medium hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[15px]">summarize</span>
+<span>결과 리포트</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">bar_chart</span>
+<span>통계</span>
+</button>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-low text-outline hover:text-on-surface transition-colors" title="추가 옵션">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Survey Item 5: 보관됨 (Archived) -->
+<div class="survey-card bg-surface-container-low/70 rounded-xl p-space-md shadow-sm flex flex-col gap-space-sm relative transition-all" data-status="archived" data-title="여름 수련회 장소 선정 사전 투표 (2024)">
+<div class="flex items-start justify-between gap-space-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-outline font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[13px]">archive</span>
+                보관됨 (ARCHIVED)
+              </span>
+<span class="font-label-sm text-label-sm text-outline">읽기 전용</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<h2 class="font-title-md text-title-md text-on-surface-variant font-semibold leading-tight">여름 수련회 장소 선정 사전 투표 (2024)</h2>
+<div class="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-body-sm text-body-sm text-on-surface-variant pt-1">
+<span>응답 198건</span>
+<span>•</span>
+<span>2024.06.10 보관됨</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="flex items-center justify-between pt-space-xs mt-1">
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">visibility</span>
+<span>결과 조회</span>
+</button>
+<button class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-surface-container-low text-outline hover:text-on-surface text-label-sm font-label-sm transition-colors">
+<span class="material-symbols-outlined text-[15px]">unarchive</span>
+<span>보관 해제</span>
+</button>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container-low text-outline hover:text-on-surface transition-colors" title="추가 옵션">
+<span class="material-symbols-outlined text-[18px]">more_horiz</span>
+</button>
+</div>
+</div>
+<!-- Empty State Indicator Container (Shown dynamically when results = 0) -->
+<div class="hidden flex-col items-center justify-center py-12 px-space-md text-center bg-surface-container-lowest rounded-xl shadow-sm my-space-xs" id="emptyStatePlaceholder">
+<div class="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center mb-space-sm">
+<span class="material-symbols-outlined text-outline text-[28px]">search_off</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold mb-1">검색 결과 또는 설문이 없습니다</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-[240px] mb-space-md">
+              입력한 검색어와 일치하는 설문 항목이 없거나 등록된 설문이 없습니다.
+            </p>
+<button class="flex items-center gap-1 px-space-md py-space-xs bg-primary text-on-primary rounded-full font-label-md text-label-md font-semibold shadow-sm hover:bg-primary-container transition-colors" id="emptyStateActionBtn">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>첫 설문 만들기</span>
+</button>
+</div>
+</div>
+<!-- Sticky Telegram Mini App Bottom Navigation -->
+<div class="absolute bottom-0 inset-x-0 bg-surface-container-lowest/95 backdrop-blur-md px-space-sm pt-space-xs pb-3 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] flex items-center justify-around z-20">
+<!-- Nav Item: Dashboard -->
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="font-label-sm text-label-sm font-medium">대시보드</span>
+</button>
+<!-- Nav Item: Surveys (Active) -->
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-primary relative">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">assignment</span>
+<span class="font-label-sm text-label-sm font-bold">설문 관리</span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary absolute -bottom-1"></span>
+</button>
+<!-- Nav Item: Analytics -->
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[22px]">insights</span>
+<span class="font-label-sm text-label-sm font-medium">응답/통계</span>
+</button>
+<!-- Nav Item: Admin / Settings -->
+<button class="flex flex-col items-center gap-0.5 py-1 px-3 text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[22px]">manage_accounts</span>
+<span class="font-label-sm text-label-sm font-medium">관리자</span>
+</button>
+</div>
+<!-- Floating Toast for Mini App Haptic/Copy Simulation -->
+<div class="absolute top-20 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface px-space-md py-space-xs rounded-full font-label-sm text-label-sm flex items-center gap-space-xs shadow-xl opacity-0 pointer-events-none transition-all duration-300 z-50" id="toastNotification">
+<span class="material-symbols-outlined text-tertiary-fixed text-[16px]">check_circle</span>
+<span id="toastMessage">설문 링크가 클립보드에 복사되었습니다.</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Interactive Design System & UI State Inspector (Specs & Empty State Sandbox) -->
+<div class="w-full lg:w-[460px] flex flex-col gap-space-lg">
+<!-- Section 1: Component Specs Card -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[20px]">design_services</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Screen 2 Design Spec</h2>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">TMA v7.0</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+          Telegram WebApp 환경에 최적화된 설문 리스트 및 필터 상태 관리 뷰입니다. 단일 탭 내에서 즉각적인 실시간 검색과 상태별 필터링, 직관적인 뱃지 컬러 코딩을 적용하여 390px 뷰포트 내 정보 밀도를 극대화했습니다.
+        </p>
+<!-- Status Badge Tokens Showcase -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-label-md text-label-md text-on-surface font-semibold">상태 뱃지 시스템 정의</span>
+<div class="grid grid-cols-3 gap-space-xs">
+<!-- Active Token -->
+<div class="p-space-xs bg-surface-container-low rounded-lg flex flex-col gap-1 items-start">
+<span class="px-1.5 py-0.5 rounded-full bg-tertiary-container/15 text-tertiary font-label-sm text-label-sm font-semibold text-[10px]">
+                진행 중 (ACTIVE)
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-[10px]">Emerald / Tertiary</span>
+</div>
+<!-- Closed Token -->
+<div class="p-space-xs bg-surface-container-low rounded-lg flex flex-col gap-1 items-start">
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm text-label-sm font-semibold text-[10px]">
+                종료 (CLOSED)
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-[10px]">Slate / Neutral</span>
+</div>
+<!-- Archived Token -->
+<div class="p-space-xs bg-surface-container-low rounded-lg flex flex-col gap-1 items-start">
+<span class="px-1.5 py-0.5 rounded-full bg-surface-container text-outline font-label-sm text-label-sm font-semibold text-[10px]">
+                보관 (ARCHIVED)
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-[10px]">Muted Outline</span>
+</div>
+</div>
+</div>
+<!-- Interactive Playground Controls -->
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<span class="font-label-md text-label-md text-on-surface font-semibold">동적 상태 시뮬레이터</span>
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1" id="toggleEmptyStateBtn">
+<span class="material-symbols-outlined text-[15px]">filter_alt_off</span>
+<span id="emptyBtnText">빈 상태 (Empty) 강제 보기</span>
+</button>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface font-label-sm text-label-sm font-medium hover:bg-surface-container-high transition-colors flex items-center gap-1" id="resetDemoBtn">
+<span class="material-symbols-outlined text-[15px]">refresh</span>
+<span>초기화</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section 2: Empty State Card Guide & Quick Preview -->
+<div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-xs pb-space-xs">
+<span class="material-symbols-outlined text-tertiary text-[20px]">layers</span>
+<h3 class="font-title-md text-title-md text-on-surface font-bold">Empty &amp; Zero-Data UX 규칙</h3>
+</div>
+<ul class="space-y-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px] mt-0.5">check_circle</span>
+<span><strong>모달 대신 인라인 표시:</strong> 텔레그램 미니앱에서는 전체 화면을 가리는 팝업보다 리스트 컨테이너 내 인라인 엠프티 레이아웃이 전환율을 높입니다.</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px] mt-0.5">check_circle</span>
+<span><strong>명확한 1차 행동(Primary CTA):</strong> 검색 결과가 없을 때는 즉시 검색 초기화를, 전체 데이터가 없을 때는 <code>+ 첫 설문 만들기</code>를 유도합니다.</span>
+</li>
+<li class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[16px] mt-0.5">check_circle</span>
+<span><strong>원터치 클립보드 공유:</strong> 개별 카드의 링크 복사 버튼을 누르면 Telegram Haptic API 콜과 함께 커스텀 토스트 알림을 즉시 발화합니다.</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // DOM Elements
+  const searchInput = document.getElementById('surveySearchInput');
+  const clearSearchBtn = document.getElementById('clearSearchBtn');
+  const surveyCards = document.querySelectorAll('.survey-card');
+  const emptyStatePlaceholder = document.getElementById('emptyStatePlaceholder');
+  const resultCountLabel = document.getElementById('resultCountLabel');
+  const tabButtons = document.querySelectorAll('.filter-tab');
+  const sortToggleBtn = document.getElementById('sortToggleBtn');
+  const sortText = document.getElementById('sortText');
+  const toastNotification = document.getElementById('toastNotification');
+  const toastMessage = document.getElementById('toastMessage');
+  const copyButtons = document.querySelectorAll('.action-copy-btn');
+  const toggleEmptyStateBtn = document.getElementById('toggleEmptyStateBtn');
+  const emptyBtnText = document.getElementById('emptyBtnText');
+  const resetDemoBtn = document.getElementById('resetDemoBtn');
+  const emptyStateActionBtn = document.getElementById('emptyStateActionBtn');
+
+  let currentFilter = 'all';
+  let isAscending = false;
+  let forceEmpty = false;
+
+  // Show Toast Simulation
+  function showToast(msg) {
+    if (toastNotification && toastMessage) {
+      toastMessage.textContent = msg;
+      toastNotification.classList.remove('opacity-0', 'pointer-events-none');
+      toastNotification.classList.add('opacity-100');
+      setTimeout(() => {
+        toastNotification.classList.remove('opacity-100');
+        toastNotification.classList.add('opacity-0', 'pointer-events-none');
+      }, 2200);
+    }
+  }
+
+  // Filter & Search Logic
+  function updateSurveyList() {
+    if (forceEmpty) {
+      surveyCards.forEach(card => card.classList.add('hidden'));
+      emptyStatePlaceholder.classList.remove('hidden');
+      emptyStatePlaceholder.classList.add('flex');
+      resultCountLabel.textContent = '총 0개 설문';
+      return;
+    }
+
+    const query = searchInput.value.trim().toLowerCase();
+    let visibleCount = 0;
+
+    surveyCards.forEach(card => {
+      const cardStatus = card.getAttribute('data-status');
+      const cardTitle = (card.getAttribute('data-title') || '').toLowerCase();
+
+      const matchesFilter = (currentFilter === 'all') || (cardStatus === currentFilter);
+      const matchesSearch = query === '' || cardTitle.includes(query);
+
+      if (matchesFilter && matchesSearch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    resultCountLabel.textContent = `총 ${visibleCount}개 설문`;
+
+    if (visibleCount === 0) {
+      emptyStatePlaceholder.classList.remove('hidden');
+      emptyStatePlaceholder.classList.add('flex');
+    } else {
+      emptyStatePlaceholder.classList.add('hidden');
+      emptyStatePlaceholder.classList.remove('flex');
+    }
+  }
+
+  // Search input handler
+  searchInput.addEventListener('input', (e) => {
+    if (e.target.value.length > 0) {
+      clearSearchBtn.classList.remove('hidden');
+    } else {
+      clearSearchBtn.classList.add('hidden');
+    }
+    forceEmpty = false;
+    updateSurveyList();
+  });
+
+  // Clear search button
+  clearSearchBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearchBtn.classList.add('hidden');
+    forceEmpty = false;
+    updateSurveyList();
+    searchInput.focus();
+  });
+
+  // Tab Filtering
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => {
+        b.classList.remove('active', 'bg-primary', 'text-on-primary', 'font-semibold', 'shadow-sm');
+        b.classList.add('bg-surface-container-low', 'text-on-surface-variant', 'font-medium');
+      });
+
+      btn.classList.add('active', 'bg-primary', 'text-on-primary', 'font-semibold', 'shadow-sm');
+      btn.classList.remove('bg-surface-container-low', 'text-on-surface-variant', 'font-medium');
+
+      currentFilter = btn.getAttribute('data-filter');
+      forceEmpty = false;
+      updateSurveyList();
+    });
+  });
+
+  // Sort Toggle simulation
+  sortToggleBtn.addEventListener('click', () => {
+    isAscending = !isAscending;
+    sortText.textContent = isAscending ? '생성일 순 ↑' : '생성일 순 ↓';
+    showToast(isAscending ? '오래된 순으로 정렬되었습니다.' : '최신 생성일 순으로 정렬되었습니다.');
+  });
+
+  // Copy link interaction
+  copyButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showToast('설문 링크가 클립보드에 복사되었습니다.');
+    });
+  });
+
+  // Toggle Force Empty State Simulation
+  toggleEmptyStateBtn.addEventListener('click', () => {
+    forceEmpty = !forceEmpty;
+    emptyBtnText.textContent = forceEmpty ? '리스트 원본 복원' : '빈 상태 (Empty) 강제 보기';
+    updateSurveyList();
+  });
+
+  // Reset Button
+  resetDemoBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearSearchBtn.classList.add('hidden');
+    currentFilter = 'all';
+    forceEmpty = false;
+    emptyBtnText.textContent = '빈 상태 (Empty) 강제 보기';
+
+    tabButtons.forEach((b, idx) => {
+      if (idx === 0) {
+        b.classList.add('active', 'bg-primary', 'text-on-primary', 'font-semibold', 'shadow-sm');
+        b.classList.remove('bg-surface-container-low', 'text-on-surface-variant', 'font-medium');
+      } else {
+        b.classList.remove('active', 'bg-primary', 'text-on-primary', 'font-semibold', 'shadow-sm');
+        b.classList.add('bg-surface-container-low', 'text-on-surface-variant', 'font-medium');
+      }
+    });
+
+    updateSurveyList();
+    showToast('설문 필터가 초기화되었습니다.');
+  });
+
+  // Action CTA in empty state
+  emptyStateActionBtn.addEventListener('click', () => {
+    showToast('새 설문 빌더 화면으로 이동합니다.');
+  });
+
+  // Create New Survey Button in TMA top bar
+  const btnCreateNew = document.getElementById('btnCreateNew');
+  if (btnCreateNew) {
+    btnCreateNew.addEventListener('click', () => {
+      showToast('새 설문 생성 마법사를 시작합니다.');
+    });
+  }
+</script></main><footer class="w-full bg-surface-container-low py-space-xl"><div class="w-full px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md text-center md:text-left"><div class="flex flex-col gap-space-xs"><span class="font-label-lg text-label-lg text-on-surface">FormGram Telegram Mini App UI/UX System</span><span class="font-body-sm text-body-sm text-on-surface-variant">Designed for Telegram Mobile Webview (390px Viewport) &amp; Desktop Client Overlays.</span></div><div class="flex items-center gap-space-md font-label-md text-label-md text-on-surface-variant"><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>TG Mini App Verified</span><span class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px] text-primary">touch_app</span>Haptic Touch Ready</span><span>© 2025 FormGram Inc.</span></div></div></footer></body></html>
