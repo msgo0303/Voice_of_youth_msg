@@ -8,14 +8,31 @@ import { LayoutDashboard, FileText, Users, ShieldAlert } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isLoading, isAuthenticated, user, role, error, setTestUserId } = useTelegramAuth();
-  const [inputTgId, setInputTgId] = React.useState('');
-  const [loginErr, setLoginErr] = React.useState<string | null>(null);
+  const { isLoading, isAuthenticated, user, role, error } = useTelegramAuth();
+  const [requestStatus, setRequestStatus] = React.useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [requestMsg, setRequestMsg] = React.useState<string | null>(null);
 
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputTgId || !inputTgId.trim()) return;
-    setTestUserId(Number(inputTgId.trim()));
+  const handleApplyAdmin = async () => {
+    setRequestStatus('submitting');
+    setRequestMsg(null);
+    try {
+      const res = await fetch('/api/user/admin-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requested_role: 'ADMIN' })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRequestStatus('success');
+        setRequestMsg(data.message || '관리자 승인 신청이 완료되었습니다.');
+      } else {
+        setRequestStatus('error');
+        setRequestMsg(data.error || '관리자 승인 신청 중 오류가 발생했습니다.');
+      }
+    } catch (err: any) {
+      setRequestStatus('error');
+      setRequestMsg(err.message || '네트워크 오류가 발생했습니다.');
+    }
   };
 
   if (isLoading) {
@@ -35,41 +52,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-slate-200 p-6 text-center space-y-5">
           <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
           <div>
-            <h2 className="text-lg font-bold text-slate-800">관리자 접근 인증</h2>
+            <h2 className="text-lg font-bold text-slate-800">관리자 전용 페이지</h2>
             <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-              텔레그램 미니앱 외부(웹 브라우저)에서 어드민에 접속하려면<br />
-              Supabase DB에 등록된 관리자 텔레그램 User ID로 인증하세요.
+              접근 권한이 없습니다.<br />
+              Supabase DB에 등록된 관리자 텔레그램 계정만 접근할 수 있습니다.
             </p>
           </div>
 
-          {/* Admin Telegram ID Verification Form */}
-          <form onSubmit={handleAdminLogin} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-left">
-            <label className="text-xs font-bold text-slate-700 block">
-              🔑 관리자 텔레그램 ID 인증
-            </label>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="예: 1284576145"
-                value={inputTgId}
-                onChange={(e) => setInputTgId(e.target.value)}
-                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+          {requestStatus === 'success' ? (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs space-y-1">
+              <p className="font-bold">✅ 신청 완료</p>
+              <p>{requestMsg}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {requestMsg && (
+                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs">
+                  {requestMsg}
+                </div>
+              )}
               <button
-                type="submit"
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow transition shrink-0"
+                type="button"
+                onClick={handleApplyAdmin}
+                disabled={requestStatus === 'submitting'}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow transition"
               >
-                인증 접속
+                {requestStatus === 'submitting' ? '신청 처리 중...' : '📋 관리자 권한 승인 신청하기'}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setTestUserId(1284576145)}
-              className="w-full py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold transition text-center"
-            >
-              👑 SUPER_ADMIN 고민석 (1284576145) 바로 접속
-            </button>
-          </form>
+          )}
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <Link href="/" className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition">

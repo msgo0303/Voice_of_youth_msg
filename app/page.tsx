@@ -41,22 +41,25 @@ export default function RootHomePage() {
           </div>
 
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <Link
-              href="/admin"
-              className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1.5"
-            >
-              <Shield className="w-3.5 h-3.5" />
-              <span>{isAdmin ? `관리자 센터 (${role})` : '관리자 로그인 (/admin)'}</span>
-            </Link>
-            <a
-              href="https://t.me/Voymsg_bot"
-              target="_blank"
-              rel="noreferrer"
-              className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition flex items-center space-x-1 border border-blue-200"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">텔레그램 봇</span>
-            </a>
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1.5"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                <span>관리자 센터 ({role})</span>
+              </Link>
+            ) : (
+              <a
+                href="https://t.me/Voymsg_bot"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 border border-blue-200"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>텔레그램 봇</span>
+              </a>
+            )}
           </div>
         </div>
       </header>
@@ -74,15 +77,17 @@ export default function RootHomePage() {
           <p className="text-xs sm:text-sm text-blue-100 leading-relaxed max-w-xl">
             전달받으신 설문 주소를 통해 바로 참여하시거나 진행 중인 활성 설문을 선택하여 응답해 주세요.
           </p>
-          <div className="pt-2">
-            <Link
-              href="/admin"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 hover:bg-blue-50 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm shadow-md transition"
-            >
-              <Shield className="w-4 h-4 text-blue-600" />
-              <span>👑 관리자 센터 대시보드 바로가기 ➔</span>
-            </Link>
-          </div>
+          {isAdmin && (
+            <div className="pt-2">
+              <Link
+                href="/admin"
+                className="inline-flex items-center space-x-2 bg-white text-blue-700 hover:bg-blue-50 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm shadow-md transition"
+              >
+                <Shield className="w-4 h-4 text-blue-600" />
+                <span>👑 관리자 센터 대시보드 바로가기 ➔</span>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Active Public Surveys */}
