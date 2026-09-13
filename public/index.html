@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FormGram (폼그램) UI/UX Design System Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+<body class="bg-[#FAF8FF] text-slate-900 min-h-screen pb-20">
+
+  <!-- Header Bar -->
+  <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+    <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-lg shadow-md">
+          F
+        </div>
+        <div>
+          <h1 class="font-bold text-slate-900 text-base leading-none">FormGram (폼그램)</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Telegram Mini App UI/UX Design System Showcase</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3">
+        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-100 text-blue-700">
+          Vercel Direct File Hosting
+        </span>
+        <a href="/" class="text-xs font-bold text-slate-600 hover:text-blue-600 transition flex items-center space-x-1">
+          <span>실제 앱으로 이동</span>
+          <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="max-w-7xl mx-auto px-6 py-10">
+    <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="relative z-10 max-w-2xl space-y-3">
+        <span class="text-xs font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
+          Design System Showcase Hub
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          FormGram 직관적 HTML 페이지 디자인 모음
+        </h2>
+        <p class="text-blue-100 text-sm leading-relaxed">
+          역할별로 구분된 직관적인 HTML 파일입니다. 각 카드의 [페이지 열기] 버튼을 누르면 해당 HTML 화면으로 직접 이동합니다.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Design Screens Showcase Grid -->
+  <main class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Page 1: Dashboard -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/dashboard.png" alt="1. 관리자 대시보드" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            dashboard.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">1. 관리자 대시보드</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            전체 설문 진행 현황, 총 응답 수 및 최근 활동 통계를 한눈에 확인할 수 있는 메인 대시보드 UI입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/dashboard.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>dashboard.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/dashboard.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 2: Forms List -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/forms_list.png" alt="2. 설문 목록 & 필터" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            forms_list.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">2. 설문 목록 & 필터</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            ACTIVE, CLOSED, ARCHIVED 상태별 필터링 및 검색 기능이 제공되는 설문 관리 목록 화면입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/forms_list.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>forms_list.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/forms_list.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 3: Form Builder -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/form_builder.png" alt="3. 설문 생성 & 질문 편집기" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            form_builder.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">3. 설문 생성 & 질문 편집기</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Google Forms 스타일의 7가지 질문 유형 편집 및 기본 필수 질문(지역, 직분, 이름) 템플릿 제작 화면입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/form_builder.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>form_builder.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/form_builder.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 4: Member Management -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/member_management.png" alt="4. 관리자 신청 및 권한 관리" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            member_management.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">4. 관리자 권한 관리</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            SUPER_ADMIN이 신청자의 텔레그램 프로필을 확인하고 승인/거절 및 권한(ADMIN/VIEWER)을 변경하는 UI입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/member_management.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>member_management.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/member_management.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 5: User Survey Form -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/user_survey_form.png" alt="5. 사용자 설문 응답 폼" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            user_survey_form.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">5. 사용자 설문 응답 폼</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Telegram Mini App 390px 모바일 뷰포트 기반 일반 사용자 설문 응답 입력 및 제출 확인 모달 화면입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/user_survey_form.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>user_survey_form.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/user_survey_form.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Page 6: User My Responses -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden group">
+        <div class="h-48 bg-slate-100 overflow-hidden relative border-b border-slate-100">
+          <img src="./design/screenshots/user_my_responses.png" alt="6. 제출 완료 & 내 응답" class="w-full h-full object-cover object-top group-hover:scale-105 transition duration-300">
+          <span class="absolute top-3 left-3 bg-blue-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow">
+            user_my_responses.html
+          </span>
+        </div>
+        <div class="p-5 space-y-3">
+          <h3 class="font-bold text-slate-900 text-base">6. 제출 완료 & 내 응답</h3>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            설문 제출 완료 안내 및 본인이 제출했던 이전 응답 내역 조회 / 수정 폼 화면입니다.
+          </p>
+          <div class="pt-2 flex items-center justify-between">
+            <a href="./design/user_my_responses.html" target="_blank" class="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center space-x-1">
+              <span>user_my_responses.html 열기</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+            <a href="./design/screenshots/user_my_responses.png" target="_blank" class="text-xs font-semibold text-slate-400 hover:text-slate-700">
+              스크린샷
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="max-w-7xl mx-auto px-6 pt-12 text-center text-xs text-slate-400">
+    FormGram (폼그램) Telegram Mini App Project • Designed & Developed for Youth & Educational Organizations
+  </footer>
+</body>
+</html>
