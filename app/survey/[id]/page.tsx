@@ -252,7 +252,7 @@ export default function UserSurveyPage() {
                     placeholder="답변을 입력해 주세요"
                     value={answers[q.id] || ''}
                     onChange={(e) => handleSingleAnswerChange(q.id, e.target.value)}
-                    className="w-full text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm sm:text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
@@ -262,7 +262,7 @@ export default function UserSurveyPage() {
                     placeholder="상세 내용을 작성해 주세요"
                     value={answers[q.id] || ''}
                     onChange={(e) => handleSingleAnswerChange(q.id, e.target.value)}
-                    className="w-full text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm sm:text-xs p-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 )}
 
@@ -307,7 +307,7 @@ export default function UserSurveyPage() {
                   <select
                     value={answers[q.id] || ''}
                     onChange={(e) => handleSingleAnswerChange(q.id, e.target.value)}
-                    className="w-full text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full text-sm sm:text-xs px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">선택해 주세요</option>
                     {opts.map((opt, oIdx) => (
