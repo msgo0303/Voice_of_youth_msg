@@ -168,12 +168,22 @@ export async function POST(
         messageText += `<b>Q${idx + 1}. ${escapeHtml(q.title)}</b>\n↳ ${escapeHtml(ansVal)}\n\n`;
       });
 
-      const telegramRes = await sendTelegramBotMessage({
+      let telegramRes = await sendTelegramBotMessage({
         chat_id: targetChatId,
         message_thread_id: targetTopicId || undefined,
         text: messageText,
         parse_mode: 'HTML'
       });
+
+      // If dispatch to specific topic thread failed, retry sending directly to group chat
+      if (!telegramRes.ok && targetTopicId) {
+        console.warn(`Telegram topic send failed (${telegramRes.error}), retrying without topic thread...`);
+        telegramRes = await sendTelegramBotMessage({
+          chat_id: targetChatId,
+          text: messageText,
+          parse_mode: 'HTML'
+        });
+      }
 
       if (telegramRes.ok && telegramRes.result?.message_id) {
         telegramMessageId = telegramRes.result.message_id;

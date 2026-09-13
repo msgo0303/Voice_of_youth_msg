@@ -189,7 +189,7 @@ export async function PUT(
   }
 }
 
-// PATCH /api/admin/forms/[id] - Quick update form status (ACTIVE / CLOSED / ARCHIVED)
+// PATCH /api/admin/forms/[id] - Quick update form status or response topic
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -204,30 +204,37 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { status } = body;
+    const updateData: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    };
 
-    if (!['ACTIVE', 'CLOSED', 'ARCHIVED'].includes(status)) {
-      return NextResponse.json({ error: '유효하지 않은 설문 상태입니다.' }, { status: 400 });
+    if (body.status && ['ACTIVE', 'CLOSED', 'ARCHIVED'].includes(body.status)) {
+      updateData.status = body.status;
+    }
+
+    if (body.response_chat_id !== undefined) {
+      updateData.response_chat_id = body.response_chat_id ? Number(body.response_chat_id) : null;
+    }
+
+    if (body.response_topic_id !== undefined) {
+      updateData.response_topic_id = body.response_topic_id ? Number(body.response_topic_id) : null;
     }
 
     const supabase = getServiceSupabase();
     const { data: form, error } = await supabase
       .from('forms')
-      .update({
-        status,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', formId)
       .select()
       .single();
 
     if (error || !form) {
-      return NextResponse.json({ error: error?.message || '상태 변경 실패' }, { status: 500 });
+      return NextResponse.json({ error: error?.message || '설문 설정 업데이트 실패' }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
-      message: `설문 상태가 [${status}] (으)로 변경되었습니다.`,
+      message: '설문 설정이 성공적으로 업데이트되었습니다.',
       form
     });
   } catch (error: any) {

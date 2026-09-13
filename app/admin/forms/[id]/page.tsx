@@ -44,7 +44,7 @@ export default function AdminFormDetailPage() {
   const params = useParams();
   const router = useRouter();
   const formId = params.id as string;
-  const { role, initData, telegramUserId } = useTelegramAuth();
+  const { role, initData, telegramUserId, user } = useTelegramAuth();
 
   const [form, setForm] = useState<Form & { responseCount: number } | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -59,12 +59,19 @@ export default function AdminFormDetailPage() {
   const [responsesError, setResponsesError] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
 
+  // Topic binding state for existing surveys
+  const [topicChatIdInput, setTopicChatIdInput] = useState('');
+  const [topicIdInput, setTopicIdInput] = useState('');
+  const [topicSaving, setTopicSaving] = useState(false);
+  const [topicSaveSuccess, setTopicSaveSuccess] = useState(false);
+
   const getAuthHeaders = () => {
     const headers: Record<string, string> = {};
     if (initData) headers['x-telegram-init-data'] = initData;
 
     const effectiveUserId =
       telegramUserId ||
+      user?.id ||
       (typeof window !== 'undefined' ? localStorage.getItem('formgram_test_user_id') : null);
 
     if (effectiveUserId) {
@@ -72,30 +79,6 @@ export default function AdminFormDetailPage() {
     }
     return headers;
   };
-
-  useEffect(() => {
-    async function fetchFormDetail() {
-      try {
-        const res = await fetch(`/api/admin/forms/${formId}`, { headers: getAuthHeaders() });
-        const json = await res.json();
-
-        if (res.ok && json.success) {
-          setForm(json.form);
-          setQuestions(json.questions || []);
-        } else {
-          setError(json.error || '설문 정보를 불러올 수 없습니다.');
-        }
-      } catch (err: any) {
-        setError(err.message || '네트워크 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (formId) {
-      fetchFormDetail();
-    }
-  }, [formId, initData, telegramUserId]);
 
   const fetchResponses = async () => {
     setLoadingResponses(true);
@@ -114,6 +97,33 @@ export default function AdminFormDetailPage() {
       setLoadingResponses(false);
     }
   };
+
+  useEffect(() => {
+    async function fetchFormDetail() {
+      try {
+        const res = await fetch(`/api/admin/forms/${formId}`, { headers: getAuthHeaders() });
+        const json = await res.json();
+
+        if (res.ok && json.success) {
+          setForm(json.form);
+          setQuestions(json.questions || []);
+          if (json.form.response_chat_id) setTopicChatIdInput(json.form.response_chat_id.toString());
+          if (json.form.response_topic_id) setTopicIdInput(json.form.response_topic_id.toString());
+        } else {
+          setError(json.error || '설문 정보를 불러올 수 없습니다.');
+        }
+      } catch (err: any) {
+        setError(err.message || '네트워크 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    if (formId) {
+      fetchFormDetail();
+      fetchResponses();
+    }
+  }, [formId, initData, telegramUserId, user?.id]);
 
   const handleStatusChange = async (newStatus: FormStatus) => {
     if (!form || statusUpdating) return;
@@ -137,6 +147,45 @@ export default function AdminFormDetailPage() {
       alert(err.message || '네트워크 오류');
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleSaveTopicSetting = async () => {
+    if (!form || topicSaving) return;
+    setTopicSaving(true);
+    setTopicSaveSuccess(false);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthHeaders()
+        },
+        body: JSON.stringify({
+          response_chat_id: topicChatIdInput ? Number(topicChatIdInput) : null,
+          response_topic_id: topicIdInput ? Number(topicIdInput) : null
+        })
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setForm((prev) =>
+          prev
+            ? {
+                ...prev,
+                response_chat_id: topicChatIdInput ? Number(topicChatIdInput) : null,
+                response_topic_id: topicIdInput ? Number(topicIdInput) : null
+              }
+            : null
+        );
+        setTopicSaveSuccess(true);
+        setTimeout(() => setTopicSaveSuccess(false), 3000);
+      } else {
+        alert(json.error || '토픽 연동 설정 저장에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류');
+    } finally {
+      setTopicSaving(false);
     }
   };
 
@@ -338,6 +387,66 @@ export default function AdminFormDetailPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Telegram Notification Topic Settings Card */}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-slate-900 font-bold text-sm">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+                <span>📌 텔레그램 응답 알림 토픽 연동 설정</span>
+              </div>
+              {topicSaveSuccess && (
+                <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                  ✓ 토픽 연동 저장 완료!
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-500">
+              이 설문에 새로운 응답이 제출되면 지정한 텔레그램 그룹 Chat ID와 토픽 ID(Thread ID)로 실시간 알림이 발송됩니다. (기존 생성된 설문도 자유롭게 변경/연동 가능)
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  텔레그램 그룹 Chat ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="예: -1003721720880"
+                  value={topicChatIdInput}
+                  onChange={(e) => setTopicChatIdInput(e.target.value)}
+                  disabled={isViewOnly || topicSaving}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  토픽 ID (Thread ID)
+                </label>
+                <input
+                  type="text"
+                  placeholder="예: 2 (일반 채팅방은 빈칸)"
+                  value={topicIdInput}
+                  onChange={(e) => setTopicIdInput(e.target.value)}
+                  disabled={isViewOnly || topicSaving}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                />
+              </div>
+            </div>
+
+            {!isViewOnly && (
+              <div className="flex justify-end">
+                <button
+                  onClick={handleSaveTopicSetting}
+                  disabled={topicSaving}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition flex items-center space-x-1.5 shadow-sm"
+                >
+                  {topicSaving ? '저장 중...' : '토픽 연동 설정 저장'}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Meta Stats Overview */}
