@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/supabase';
 import { QuestionType } from '@/types/database';
+import { encodeQuestionForDb, decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
 export interface QuestionPayload {
   title: string;
@@ -58,16 +59,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: formError?.message || '설문 생성 실패' }, { status: 500 });
     }
 
-    // 2. Format questions for insertion
-    const questionRows = questions.map((q: QuestionPayload, idx: number) => ({
-      form_id: newForm.id,
-      title: q.title.trim(),
-      description: q.description?.trim() || null,
-      type: q.type,
-      options: q.options || [],
-      required: q.required !== undefined ? q.required : true,
-      order_index: idx
-    }));
+    // 2. Format questions for insertion with DB constraint mapping
+    const questionRows = questions.map((q: QuestionPayload, idx: number) => {
+      const encoded = encodeQuestionForDb({
+        ...q,
+        order_index: idx
+      });
+      return {
+        form_id: newForm.id,
+        title: encoded.title.trim(),
+        description: encoded.description?.trim() || null,
+        type: encoded.type,
+        options: encoded.options || [],
+        required: encoded.required !== undefined ? encoded.required : true,
+        order_index: idx
+      };
+    });
 
     const { data: createdQuestions, error: qError } = await supabase
       .from('questions')
@@ -80,14 +87,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `질문 저장 중 오류: ${qError.message}` }, { status: 500 });
     }
 
+    const decodedQuestions = (createdQuestions || []).map(q => decodeQuestionFromDb(q));
+
     return NextResponse.json({
       success: true,
       message: '설문이 성공적으로 생성되고 즉시 활성화(ACTIVE)되었습니다.',
       form: newForm,
-      questions: createdQuestions
+      questions: decodedQuestions
     }, { status: 201 });
   } catch (error: any) {
     console.error('Full form creation error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+

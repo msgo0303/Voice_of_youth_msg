@@ -3,6 +3,7 @@ import { getAuthSessionFromRequest } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/supabase';
 import { sendTelegramBotMessage } from '@/lib/telegramBot';
 import { QuestionSnapshot } from '@/types/database';
+import { decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
 export async function POST(
   req: NextRequest,
@@ -50,15 +51,17 @@ export async function POST(
     }
 
     // 3. Fetch Questions for this form
-    const { data: questions, error: qErr } = await supabase
+    const { data: rawQuestions, error: qErr } = await supabase
       .from('questions')
       .select('*')
       .eq('form_id', formId)
       .order('order_index', { ascending: true });
 
-    if (qErr || !questions || questions.length === 0) {
+    if (qErr || !rawQuestions || rawQuestions.length === 0) {
       return NextResponse.json({ error: '질문 목록을 불러올 수 없습니다.' }, { status: 400 });
     }
+
+    const questions = rawQuestions.map(q => decodeQuestionFromDb(q));
 
     // 4. Validate required answers
     const missingQuestions: string[] = [];
@@ -112,6 +115,7 @@ export async function POST(
         answer_value: answers[q.id] || ''
       };
     });
+
 
     const { error: ansInsertErr } = await supabase
       .from('response_answers')

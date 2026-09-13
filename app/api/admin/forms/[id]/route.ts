@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireViewerOrAdmin, requireAdmin } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/supabase';
 import { QuestionPayload } from '@/app/api/admin/forms/full/route';
+import { encodeQuestionForDb, decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
 // GET /api/admin/forms/[id] - Fetch form details and its questions
 export async function GET(
@@ -41,6 +42,9 @@ export async function GET(
       return NextResponse.json({ error: qError.message }, { status: 500 });
     }
 
+    // Decode questions DB constraints to UI types
+    const decodedQuestions = (questions || []).map(q => decodeQuestionFromDb(q));
+
     // 3. Fetch response count
     const { count } = await supabase
       .from('responses')
@@ -53,7 +57,7 @@ export async function GET(
         ...form,
         responseCount: count || 0
       },
-      questions: questions || []
+      questions: decodedQuestions
     });
   } catch (error: any) {
     console.error('Fetch form detail error:', error);
@@ -148,16 +152,22 @@ export async function PUT(
     // Delete existing questions for this form
     await supabase.from('questions').delete().eq('form_id', formId);
 
-    // Re-insert updated questions
-    const questionRows = questions.map((q: QuestionPayload, idx: number) => ({
-      form_id: formId,
-      title: q.title.trim(),
-      description: q.description?.trim() || null,
-      type: q.type,
-      options: q.options || [],
-      required: q.required !== undefined ? q.required : true,
-      order_index: idx
-    }));
+    // Re-insert updated questions with DB constraint mapping
+    const questionRows = questions.map((q: QuestionPayload, idx: number) => {
+      const encoded = encodeQuestionForDb({
+        ...q,
+        order_index: idx
+      });
+      return {
+        form_id: formId,
+        title: encoded.title.trim(),
+        description: encoded.description?.trim() || null,
+        type: encoded.type,
+        options: encoded.options || [],
+        required: encoded.required !== undefined ? encoded.required : true,
+        order_index: idx
+      };
+    });
 
     const { data: updatedQuestions, error: qInsertErr } = await supabase
       .from('questions')
@@ -168,14 +178,17 @@ export async function PUT(
       return NextResponse.json({ error: `질문 갱신 실패: ${qInsertErr.message}` }, { status: 500 });
     }
 
+    const decodedQuestions = (updatedQuestions || []).map(q => decodeQuestionFromDb(q));
+
     return NextResponse.json({
       success: true,
       message: '설문 및 질문 수정이 완료되었습니다.',
       form: updatedForm,
-      questions: updatedQuestions
+      questions: decodedQuestions
     });
   } catch (error: any) {
     console.error('Update form error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
