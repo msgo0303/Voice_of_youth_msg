@@ -25,8 +25,8 @@ export async function GET(req: NextRequest) {
     ]);
 
     const countsMap: Record<string, number> = {};
-    (responsesData || []).forEach((r) => {
-      if (r.form_id) {
+    ((responsesData as Array<{ form_id: string }>) || []).forEach((r) => {
+      if (r && r.form_id) {
         countsMap[r.form_id] = (countsMap[r.form_id] || 0) + 1;
       }
     });
