@@ -125,7 +125,8 @@ export async function PUT(
     const supabase = getServiceSupabase();
 
     // 1. Update form metadata
-    const { data: updatedForm, error: updateFormErr } = await (supabase.from('forms') as any)
+    const { data: updatedForm, error: updateFormErr } = await supabase
+      .from('forms')
       .update({
         title: title.trim(),
         description: description?.trim() || null,
@@ -165,7 +166,8 @@ export async function PUT(
       };
     });
 
-    const { data: updatedQuestions, error: qInsertErr } = await (supabase.from('questions') as any)
+    const { data: updatedQuestions, error: qInsertErr } = await supabase
+      .from('questions')
       .insert(questionRows)
       .select();
 
@@ -173,7 +175,7 @@ export async function PUT(
       return NextResponse.json({ error: `질문 갱신 실패: ${qInsertErr.message}` }, { status: 500 });
     }
 
-    const decodedQuestions = (updatedQuestions || []).map(q => decodeQuestionFromDb(q));
+    const decodedQuestions = (updatedQuestions || []).map((q: any) => decodeQuestionFromDb(q));
 
     return NextResponse.json({
       success: true,
@@ -219,7 +221,8 @@ export async function PATCH(
     }
 
     const supabase = getServiceSupabase();
-    const { data: form, error } = await (supabase.from('forms') as any)
+    const { data: form, error } = await supabase
+      .from('forms')
       .update(updateData)
       .eq('id', formId)
       .select()

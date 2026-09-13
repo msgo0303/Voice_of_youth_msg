@@ -14,14 +14,14 @@ const supabaseServiceRoleKey =
     : supabaseAnonKey; // Fallback to anonKey if service_role key is not configured yet
 
 // 클라이언트 사이드용 (공개 키)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient<any>(supabaseUrl, supabaseAnonKey);
 
-let cachedServiceClient: ReturnType<typeof createClient> | null = null;
+let cachedServiceClient: any = null;
 
 // 서버 전용 관리자 클라이언트 (Service Role Key - RLS 우회용)
-export const getServiceSupabase = () => {
+export const getServiceSupabase = (): any => {
   if (!cachedServiceClient) {
-    cachedServiceClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    cachedServiceClient = createClient<any>(supabaseUrl, supabaseServiceRoleKey, {
       auth: { persistSession: false }
     });
   }

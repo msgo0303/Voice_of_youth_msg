@@ -22,8 +22,7 @@ export async function POST(
 
   try {
     const supabase = getServiceSupabase();
-    const { data: updatedAdmin, error } = await supabase
-      .from('admins')
+    const { data: updatedAdmin, error } = await (supabase.from('admins') as any)
       .update({
         status: 'INACTIVE',
         updated_at: new Date().toISOString()

@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    const { data: createdQuestions, error: qError } = await supabase
+    const { data: insertedQuestions, error: qError } = await supabase
       .from('questions')
       .insert(questionRows)
       .select();
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `질문 저장 중 오류: ${qError.message}` }, { status: 500 });
     }
 
-    const decodedQuestions = (createdQuestions || []).map(q => decodeQuestionFromDb(q));
+    const decodedQuestions = (insertedQuestions || []).map((q: any) => decodeQuestionFromDb(q));
 
     return NextResponse.json({
       success: true,

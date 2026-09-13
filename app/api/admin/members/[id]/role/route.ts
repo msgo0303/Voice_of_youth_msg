@@ -24,8 +24,7 @@ export async function PATCH(
     }
 
     const supabase = getServiceSupabase();
-    const { data: updatedAdmin, error } = await supabase
-      .from('admins')
+    const { data: updatedAdmin, error } = await (supabase.from('admins') as any)
       .update({
         role,
         updated_at: new Date().toISOString()

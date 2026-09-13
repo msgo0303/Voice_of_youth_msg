@@ -17,8 +17,7 @@ export async function POST(
   try {
     const supabase = getServiceSupabase();
 
-    const { data: request, error: fetchErr } = await supabase
-      .from('admin_requests')
+    const { data: request, error: fetchErr } = await (supabase.from('admin_requests') as any)
       .select('*')
       .eq('id', requestId)
       .single();
@@ -35,8 +34,7 @@ export async function POST(
       return NextResponse.json({ error: `PENDING 상태의 신청만 거절할 수 있습니다. (현재 상태: ${request.status})` }, { status: 400 });
     }
 
-    const { data: updatedReq, error: updateErr } = await supabase
-      .from('admin_requests')
+    const { data: updatedReq, error: updateErr } = await (supabase.from('admin_requests') as any)
       .update({
         status: 'REJECTED',
         processed_at: new Date().toISOString(),

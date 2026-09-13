@@ -18,8 +18,7 @@ export async function POST(
     const supabase = getServiceSupabase();
 
     // 1. Fetch the request
-    const { data: request, error: fetchErr } = await supabase
-      .from('admin_requests')
+    const { data: request, error: fetchErr } = await (supabase.from('admin_requests') as any)
       .select('*')
       .eq('id', requestId)
       .single();
@@ -40,8 +39,7 @@ export async function POST(
     const assignedRole = request.requested_role === 'VIEWER' ? 'VIEWER' : 'ADMIN';
 
     // 2. Update request status to APPROVED
-    await supabase
-      .from('admin_requests')
+    await (supabase.from('admin_requests') as any)
       .update({
         status: 'APPROVED',
         processed_at: new Date().toISOString(),
@@ -52,8 +50,7 @@ export async function POST(
       .eq('id', requestId);
 
     // 3. Upsert into admins table on conflict telegram_user_id (Guarantees single row per telegram_user_id)
-    const { data: updatedAdmin, error: adminErr } = await supabase
-      .from('admins')
+    const { data: updatedAdmin, error: adminErr } = await (supabase.from('admins') as any)
       .upsert(
         {
           telegram_user_id: request.telegram_user_id,
