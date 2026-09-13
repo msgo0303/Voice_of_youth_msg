@@ -13,9 +13,9 @@ export interface TelegramUser {
  * 텔레그램 미니앱 initData 검증 함수
  */
 export function verifyTelegramWebAppData(telegramInitData: string): TelegramUser | null {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8639864400:AAGiBD8Uz9iTmvVmnDd1rKysVXNn1yznHsQ';
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
   if (!botToken) {
-    console.error('TELEGRAM_BOT_TOKEN is missing');
+    console.error('TELEGRAM_BOT_TOKEN is missing in environment variables');
     return null;
   }
 

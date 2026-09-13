@@ -43,7 +43,7 @@ async function runStep8910Tests() {
   console.log("   STEPS 8, 9, 10, 11: SURVEY RESPONSE & STORAGE ");
   console.log("=================================================\n");
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8639864400:AAGiBD8Uz9iTmvVmnDd1rKysVXNn1yznHsQ';
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '';
   process.env.TELEGRAM_BOT_TOKEN = botToken;
 
   let passed = 0;

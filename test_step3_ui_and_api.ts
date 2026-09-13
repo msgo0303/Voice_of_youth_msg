@@ -42,7 +42,7 @@ async function runStep3Tests() {
   console.log("   STEP 3: DASHBOARD & FORMS UI / API TESTS      ");
   console.log("=================================================\n");
 
-  const botToken = process.env.TELEGRAM_BOT_TOKEN || '8639864400:AAGiBD8Uz9iTmvVmnDd1rKysVXNn1yznHsQ';
+  const botToken = process.env.TELEGRAM_BOT_TOKEN || '';
   process.env.TELEGRAM_BOT_TOKEN = botToken;
 
   let passed = 0;
