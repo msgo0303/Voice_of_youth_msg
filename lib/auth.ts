@@ -18,21 +18,38 @@ export async function getAuthSessionFromRequest(req: NextRequest): Promise<AuthS
   const initData = req.headers.get('x-telegram-init-data') || req.headers.get('authorization')?.replace('Bearer ', '');
   const telegramUserIdHeader = req.headers.get('x-telegram-user-id');
 
-  if (!initData) {
-    if (telegramUserIdHeader) {
-      return getAuthSessionByUserId(Number(telegramUserIdHeader));
+  // 1. Try initData first
+  if (initData) {
+    const session = await getAuthSession(initData);
+    if (session.authenticated && session.role !== 'USER') {
+      return session;
     }
-
-    return {
-      authenticated: false,
-      user: null,
-      admin: null,
-      role: 'USER',
-      error: 'Missing initData or x-telegram-user-id header'
-    };
   }
 
-  return getAuthSession(initData);
+  // 2. Fallback to x-telegram-user-id header
+  if (telegramUserIdHeader) {
+    const sessionByUserId = await getAuthSessionByUserId(Number(telegramUserIdHeader));
+    if (sessionByUserId.authenticated && sessionByUserId.role !== 'USER') {
+      return sessionByUserId;
+    }
+  }
+
+  // 3. Last resort fallback
+  if (initData) {
+    return getAuthSession(initData);
+  }
+
+  if (telegramUserIdHeader) {
+    return getAuthSessionByUserId(Number(telegramUserIdHeader));
+  }
+
+  return {
+    authenticated: false,
+    user: null,
+    admin: null,
+    role: 'USER',
+    error: 'Missing initData or x-telegram-user-id header'
+  };
 }
 
 /**
