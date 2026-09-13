@@ -14,13 +14,16 @@ export async function POST(
     return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
   }
 
-  // 1. Authenticate Telegram User
+  // 1. Authenticate Telegram User or fallback to Web Guest
   const session = await getAuthSessionFromRequest(req);
-  if (!session.authenticated || !session.user) {
-    return NextResponse.json({ error: '텔레그램 계정 인증이 필요합니다.' }, { status: 401 });
-  }
-
-  const user = session.user;
+  const user = (session.authenticated && session.user)
+    ? session.user
+    : {
+        id: Math.floor(100000000 + Math.random() * 900000000),
+        first_name: '웹 응답자',
+        last_name: '',
+        username: undefined
+      };
 
   try {
     const body = await req.json();

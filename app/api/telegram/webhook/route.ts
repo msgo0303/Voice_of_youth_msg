@@ -170,6 +170,51 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // 3. Handle incoming text messages (e.g. /start or /start form_xxx)
+    if (update.message?.text) {
+      const text = update.message.text.trim();
+      const chatId = update.message.chat.id;
+      const botToken = process.env.TELEGRAM_BOT_TOKEN;
+
+      if (text.startsWith('/start') && botToken) {
+        const parts = text.split(' ');
+        const param = parts[1] || ''; // e.g. "form_xxx" or "xxx"
+        const formId = param.replace('form_', '');
+
+        if (formId) {
+          // Fetch form title
+          const { data: form } = await supabase
+            .from('forms')
+            .select('title')
+            .eq('id', formId)
+            .maybeSingle();
+
+          const formTitle = form?.title || '설문조사';
+          const surveyWebUrl = `https://voice-of-youth-msg.vercel.app/survey/${formId}`;
+
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: `📋 *[${formTitle}]*\n\n아래 버튼을 눌러 텔레그램에서 바로 설문에 참여해 주세요!`,
+              parse_mode: 'Markdown',
+              reply_markup: {
+                inline_keyboard: [
+                  [
+                    {
+                      text: '📋 설문 응답하기',
+                      web_app: { url: surveyWebUrl }
+                    }
+                  ]
+                ]
+              }
+            })
+          });
+        }
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (error: any) {
     console.error('Telegram Webhook error:', error);
