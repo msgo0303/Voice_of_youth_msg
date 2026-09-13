@@ -125,8 +125,7 @@ export async function PUT(
     const supabase = getServiceSupabase();
 
     // 1. Update form metadata
-    const { data: updatedForm, error: updateFormErr } = await supabase
-      .from('forms')
+    const { data: updatedForm, error: updateFormErr } = await (supabase.from('forms') as any)
       .update({
         title: title.trim(),
         description: description?.trim() || null,
@@ -136,7 +135,7 @@ export async function PUT(
         response_chat_id: response_chat_id ? Number(response_chat_id) : null,
         response_topic_id: response_topic_id ? Number(response_topic_id) : null,
         updated_at: new Date().toISOString()
-      } as any)
+      })
       .eq('id', formId)
       .select()
       .single();
@@ -166,9 +165,8 @@ export async function PUT(
       };
     });
 
-    const { data: updatedQuestions, error: qInsertErr } = await supabase
-      .from('questions')
-      .insert(questionRows as any)
+    const { data: updatedQuestions, error: qInsertErr } = await (supabase.from('questions') as any)
+      .insert(questionRows)
       .select();
 
     if (qInsertErr) {
@@ -221,9 +219,8 @@ export async function PATCH(
     }
 
     const supabase = getServiceSupabase();
-    const { data: form, error } = await supabase
-      .from('forms')
-      .update(updateData as any)
+    const { data: form, error } = await (supabase.from('forms') as any)
+      .update(updateData)
       .eq('id', formId)
       .select()
       .single();
