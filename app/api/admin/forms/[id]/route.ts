@@ -4,14 +4,11 @@ import { getServiceSupabase } from '@/lib/supabase';
 import { QuestionPayload } from '@/app/api/admin/forms/full/route';
 import { encodeQuestionForDb, decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
-// GET /api/admin/forms/[id] - Fetch form details and its questions
+// GET /api/admin/forms/[id] - Fetch form details and its questions (Publicly readable for active surveys)
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { response } = await requireViewerOrAdmin(req);
-  if (response) return response;
-
   const formId = params.id;
   if (!formId) {
     return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });

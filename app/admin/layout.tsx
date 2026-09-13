@@ -27,34 +27,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-slate-200 p-6 text-center space-y-4">
           <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
           <div>
-            <h2 className="text-lg font-bold text-slate-800">관리자 접근 권한 확인 필요</h2>
-            <p className="text-xs text-slate-500 mt-1">
-              현재 접속 환경은 외부 브라우저(Chrome/Safari) 모드입니다.<br />
-              Supabase DB에 활성화된 텔레그램 관리자 ID로 인증해 주세요.
+            <h2 className="text-lg font-bold text-slate-800">관리자 전용 페이지</h2>
+            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+              이 구역은 FormGram 관리자 전용 페이지입니다.<br />
+              일반 응답자는 전달받으신 설문 주소(URL)로 직접 접속해 주세요.
             </p>
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl space-y-3 text-left">
-            <span className="text-xs font-bold text-blue-900 block">⚡ 웹 브라우저 관리자 인증 (Supabase DB 연동)</span>
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('formgram_test_user_id', '1284576145');
-                  window.location.reload();
-                }
-              }}
-              className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition active:scale-95 flex items-center justify-center space-x-2"
-            >
-              <span>👑 SUPER_ADMIN (고민석 / ID: 1284576145) 접속</span>
-            </button>
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <Link href="/" className="hover:text-slate-900 underline">
-              메인으로 돌아가기
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <Link href="/" className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition">
+              메인으로
             </Link>
-            <a href="https://t.me/Voymsg_bot" target="_blank" rel="noreferrer" className="text-blue-600 font-bold hover:underline">
-              텔레그램 봇 연동 (@Voymsg_bot)
+            <a
+              href="https://t.me/Voymsg_bot"
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition"
+            >
+              텔레그램 봇 (@Voymsg_bot)
             </a>
           </div>
         </div>
