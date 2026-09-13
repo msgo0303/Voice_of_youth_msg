@@ -4,13 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { Form, Question } from '@/types/database';
-import { getTelegramMiniAppUrl } from '@/lib/telegramLink';
 import {
-  Send,
   CheckCircle2,
   AlertCircle,
   Clock,
-  ExternalLink,
   Sparkles,
   X
 } from 'lucide-react';
@@ -27,23 +24,12 @@ export default function UserSurveyPage() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [satisfactionReasons, setSatisfactionReasons] = useState<Record<string, string>>({});
 
-  // Environment state
-  const [isTelegramWebview, setIsTelegramWebview] = useState<boolean>(true);
-  const [allowWebDirect, setAllowWebDirect] = useState<boolean>(false);
-
   // UI Flow states
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [submittedResponse, setSubmittedResponse] = useState<{ id: string; message: string } | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isTg = Boolean(window.Telegram?.WebApp?.initData || initData);
-      setIsTelegramWebview(isTg);
-    }
-  }, [initData]);
 
   useEffect(() => {
     async function fetchPublicForm() {
@@ -164,46 +150,6 @@ export default function UserSurveyPage() {
       setSubmitting(false);
     }
   };
-
-  // Step 8: External Browser Smart Fallback Notice
-  if (!isTelegramWebview && !allowWebDirect) {
-    const miniAppUrl = getTelegramMiniAppUrl(formId);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl p-6 shadow-xl border border-slate-200 text-center space-y-5">
-          <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto">
-            <Send className="w-8 h-8" />
-          </div>
-
-          <div className="space-y-2">
-            <h2 className="text-xl font-extrabold text-slate-900">Telegram 및 웹 설문 참여</h2>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Telegram 앱 내 Mini App에서 빠르게 접속하시거나 웹 브라우저에서 바로 설문에 응답하실 수 있습니다.
-            </p>
-          </div>
-
-          <div className="space-y-2.5">
-            <a
-              href={miniAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-sm shadow-md flex items-center justify-center space-x-2 transition"
-            >
-              <span>📱 Telegram 앱에서 열기</span>
-              <ExternalLink className="w-4 h-4" />
-            </a>
-
-            <button
-              onClick={() => setAllowWebDirect(true)}
-              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-2xl font-bold text-xs transition"
-            >
-              🌐 웹 브라우저에서 바로 작성하기
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
