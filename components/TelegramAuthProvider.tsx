@@ -97,37 +97,43 @@ export function TelegramAuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     async function initTelegramAuth() {
       // 1. Check if window.Telegram WebApp is available inside Telegram Mini App
-      if (typeof window !== 'undefined' && window.Telegram?.WebApp?.initData) {
+      if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
 
-        const initData = tg.initData;
+        const initData = tg.initData || '';
+        const tgUserId = tg.initDataUnsafe?.user?.id;
 
-        try {
-          const res = await fetch('/api/auth/me', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ initData })
-          });
-
-          const data = await res.json();
-
-          if (res.ok && data.success) {
-            setAuthState({
-              isLoading: false,
-              isAuthenticated: true,
-              user: data.user,
-              role: data.role,
-              initData,
-              telegramUserId: data.user?.id || null,
-              error: null,
-              setTestUserId: handleSetTestUserId
+        if (initData || tgUserId) {
+          try {
+            const res = await fetch('/api/auth/me', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                initData,
+                telegram_user_id: tgUserId
+              })
             });
-            return;
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+              setAuthState({
+                isLoading: false,
+                isAuthenticated: true,
+                user: data.user,
+                role: data.role,
+                initData,
+                telegramUserId: data.user?.id || tgUserId || null,
+                error: null,
+                setTestUserId: handleSetTestUserId
+              });
+              return;
+            }
+          } catch (err: any) {
+            console.warn('Telegram initData verification failed:', err);
           }
-        } catch (err: any) {
-          console.warn('Telegram initData verification failed:', err);
         }
       }
 

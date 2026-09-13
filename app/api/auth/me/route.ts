@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthSession, getAuthSessionByUserId, getAuthSessionFromRequest } from '@/lib/auth';
+import { getAuthSession, getAuthSessionByUserId, getAuthSessionFromRequest, AuthSession } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,16 +7,18 @@ export async function POST(req: NextRequest) {
     const initData = body.initData || req.headers.get('x-telegram-init-data');
     const telegramUserId = body.telegram_user_id || req.headers.get('x-telegram-user-id');
 
-    if (!initData && !telegramUserId) {
-      return NextResponse.json({ error: '인증 데이터(initData 또는 telegram_user_id)가 누락되었습니다.' }, { status: 400 });
+    let session: AuthSession | null = null;
+
+    if (initData) {
+      session = await getAuthSession(initData);
     }
 
-    const session = initData
-      ? await getAuthSession(initData)
-      : await getAuthSessionByUserId(Number(telegramUserId));
+    if ((!session || !session.authenticated || session.role === 'USER') && telegramUserId) {
+      session = await getAuthSessionByUserId(Number(telegramUserId));
+    }
 
-    if (!session.authenticated) {
-      return NextResponse.json({ error: session.error || '텔레그램 계정 인증에 실패했습니다.' }, { status: 401 });
+    if (!session || !session.authenticated) {
+      return NextResponse.json({ error: session?.error || '텔레그램 계정 인증에 실패했습니다.' }, { status: 401 });
     }
 
     return NextResponse.json({

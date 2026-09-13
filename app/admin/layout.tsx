@@ -8,7 +8,15 @@ import { LayoutDashboard, FileText, Users, ShieldAlert } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isLoading, isAuthenticated, user, role, error } = useTelegramAuth();
+  const { isLoading, isAuthenticated, user, role, error, setTestUserId } = useTelegramAuth();
+  const [inputTgId, setInputTgId] = React.useState('');
+  const [loginErr, setLoginErr] = React.useState<string | null>(null);
+
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputTgId || !inputTgId.trim()) return;
+    setTestUserId(Number(inputTgId.trim()));
+  };
 
   if (isLoading) {
     return (
@@ -24,15 +32,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (role === 'USER') {
     return (
       <div className="flex items-center justify-center min-h-screen p-4 bg-slate-50">
-        <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-slate-200 p-6 text-center space-y-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-md border border-slate-200 p-6 text-center space-y-5">
           <ShieldAlert className="w-12 h-12 text-rose-500 mx-auto" />
           <div>
-            <h2 className="text-lg font-bold text-slate-800">관리자 전용 페이지</h2>
+            <h2 className="text-lg font-bold text-slate-800">관리자 접근 인증</h2>
             <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
-              이 구역은 FormGram 관리자 전용 페이지입니다.<br />
-              일반 응답자는 전달받으신 설문 주소(URL)로 직접 접속해 주세요.
+              텔레그램 미니앱 외부(웹 브라우저)에서 어드민에 접속하려면<br />
+              Supabase DB에 등록된 관리자 텔레그램 User ID로 인증하세요.
             </p>
           </div>
+
+          {/* Admin Telegram ID Verification Form */}
+          <form onSubmit={handleAdminLogin} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3 text-left">
+            <label className="text-xs font-bold text-slate-700 block">
+              🔑 관리자 텔레그램 ID 인증
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                placeholder="예: 1284576145"
+                value={inputTgId}
+                onChange={(e) => setInputTgId(e.target.value)}
+                className="flex-1 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow transition shrink-0"
+              >
+                인증 접속
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setTestUserId(1284576145)}
+              className="w-full py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-lg text-xs font-bold transition text-center"
+            >
+              👑 SUPER_ADMIN 고민석 (1284576145) 바로 접속
+            </button>
+          </form>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <Link href="/" className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition">
