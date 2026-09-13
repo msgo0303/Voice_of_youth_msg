@@ -28,8 +28,13 @@ export async function POST(
       return NextResponse.json({ error: 'Admin request not found' }, { status: 404 });
     }
 
+    // Strict State Transition Check: Only PENDING requests can be approved
     if (request.status === 'APPROVED') {
-      return NextResponse.json({ error: '이미 승인된 관리자 신청입니다.' }, { status: 400 });
+      return NextResponse.json({ error: '이미 승인 처리된 관리자 신청입니다.' }, { status: 400 });
+    }
+
+    if (request.status !== 'PENDING') {
+      return NextResponse.json({ error: `PENDING 상태의 신청만 승인할 수 있습니다. (현재 상태: ${request.status})` }, { status: 400 });
     }
 
     const assignedRole = request.requested_role === 'VIEWER' ? 'VIEWER' : 'ADMIN';
@@ -46,7 +51,7 @@ export async function POST(
       })
       .eq('id', requestId);
 
-    // 3. Upsert into admins table as ACTIVE
+    // 3. Upsert into admins table on conflict telegram_user_id (Guarantees single row per telegram_user_id)
     const { data: updatedAdmin, error: adminErr } = await supabase
       .from('admins')
       .upsert(
@@ -55,7 +60,7 @@ export async function POST(
           telegram_username: request.telegram_username,
           telegram_first_name: request.telegram_first_name,
           role: assignedRole,
-          status: 'ACTIVE',
+          status: 'ACTIVE', // Reactivates INACTIVE admin if re-applying
           updated_at: new Date().toISOString()
         },
         { onConflict: 'telegram_user_id' }

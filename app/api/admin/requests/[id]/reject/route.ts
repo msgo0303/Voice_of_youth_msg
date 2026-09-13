@@ -27,6 +27,14 @@ export async function POST(
       return NextResponse.json({ error: 'Admin request not found' }, { status: 404 });
     }
 
+    if (request.status === 'REJECTED') {
+      return NextResponse.json({ error: '이미 거절 처리된 관리자 신청입니다.' }, { status: 400 });
+    }
+
+    if (request.status !== 'PENDING') {
+      return NextResponse.json({ error: `PENDING 상태의 신청만 거절할 수 있습니다. (현재 상태: ${request.status})` }, { status: 400 });
+    }
+
     const { data: updatedReq, error: updateErr } = await supabase
       .from('admin_requests')
       .update({
