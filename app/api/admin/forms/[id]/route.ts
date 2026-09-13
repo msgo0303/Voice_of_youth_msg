@@ -136,7 +136,7 @@ export async function PUT(
         response_chat_id: response_chat_id ? Number(response_chat_id) : null,
         response_topic_id: response_topic_id ? Number(response_topic_id) : null,
         updated_at: new Date().toISOString()
-      })
+      } as any)
       .eq('id', formId)
       .select()
       .single();
@@ -168,7 +168,7 @@ export async function PUT(
 
     const { data: updatedQuestions, error: qInsertErr } = await supabase
       .from('questions')
-      .insert(questionRows)
+      .insert(questionRows as any)
       .select();
 
     if (qInsertErr) {
@@ -223,7 +223,7 @@ export async function PATCH(
     const supabase = getServiceSupabase();
     const { data: form, error } = await supabase
       .from('forms')
-      .update(updateData)
+      .update(updateData as any)
       .eq('id', formId)
       .select()
       .single();
