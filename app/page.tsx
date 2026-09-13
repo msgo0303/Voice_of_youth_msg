@@ -159,8 +159,17 @@ export default function RootHomePage() {
                     </div>
 
                     <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
-                      <span>설문 미리보기 및 참여</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      <span className="flex items-center space-x-1">
+                        <span>설문 참여</span>
+                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                      </span>
+                      <Link
+                        href={`/admin/forms/${form.id}?tab=responses`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-lg text-xs font-bold transition border border-blue-200"
+                      >
+                        📊 제출 응답 보기
+                      </Link>
                     </div>
                   </Link>
                 ))}

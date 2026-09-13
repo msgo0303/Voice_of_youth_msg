@@ -131,19 +131,24 @@ export default function AdminDashboardPage() {
           ) : data?.activeForms && data.activeForms.length > 0 ? (
             <div className="space-y-3">
               {data.activeForms.map((form) => (
-                <div key={form.id} className="p-3.5 rounded-lg border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <Link
+                  key={form.id}
+                  href={`/admin/forms/${form.id}?tab=responses`}
+                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-blue-50/50 hover:border-blue-300 transition flex items-center justify-between group cursor-pointer"
+                >
                   <div>
-                    <h3 className="font-semibold text-slate-900 text-sm mb-1">{form.title}</h3>
+                    <h3 className="font-bold text-slate-900 text-sm mb-1 group-hover:text-blue-600 transition">{form.title}</h3>
                     <p className="text-xs text-slate-500">
                       생성일: {new Date(form.created_at).toLocaleDateString('ko-KR')}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                      {form.responseCount}건 응답
+                    <span className="inline-flex items-center space-x-1 bg-blue-600 group-hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm transition">
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>{form.responseCount}건 응답 보기 ➔</span>
                     </span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
@@ -167,17 +172,23 @@ export default function AdminDashboardPage() {
           ) : data?.recentResponses && data.recentResponses.length > 0 ? (
             <div className="space-y-3">
               {data.recentResponses.map((resp) => (
-                <div key={resp.id} className="p-3.5 rounded-lg border border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <Link
+                  key={resp.id}
+                  href={`/admin/forms/${resp.form_id}?tab=responses`}
+                  className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-blue-50/50 hover:border-blue-300 transition flex items-center justify-between group cursor-pointer"
+                >
                   <div>
-                    <p className="font-semibold text-slate-900 text-sm">
+                    <p className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition">
                       {resp.telegram_first_name || '응답자'} {resp.telegram_username ? `(@${resp.telegram_username})` : ''}
                     </p>
                     <p className="text-xs text-slate-500">
                       {new Date(resp.submitted_at).toLocaleString('ko-KR')}
                     </p>
                   </div>
-                  <span className="text-xs text-slate-400 font-mono">#{resp.id.slice(0, 8)}</span>
-                </div>
+                  <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 group-hover:bg-blue-600 group-hover:text-white transition">
+                    답변 보기 ➔
+                  </span>
+                </Link>
               ))}
             </div>
           ) : (
