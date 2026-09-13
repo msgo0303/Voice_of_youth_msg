@@ -20,7 +20,7 @@ if (fs.existsSync(envPath)) {
   });
 }
 
-const botToken = process.env.TELEGRAM_BOT_TOKEN || '8639864400:AAFj9yfS5HL2Di3wFAgBhNiUFRhSkInJJYQ';
+const botToken = process.env.TELEGRAM_BOT_TOKEN || '';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dgakgpwkuaoktejdenzu.supabase.co';
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET || 'test_secret_key_123';
