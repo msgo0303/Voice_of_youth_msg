@@ -24,7 +24,10 @@ import {
   PieChart,
   ListFilter,
   CheckCircle2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trash2,
+  Search,
+  Send
 } from 'lucide-react';
 
 interface ResponseDetail {
@@ -89,7 +92,13 @@ export default function AdminFormDetailPage() {
   const [loadingAnalytics, setLoadingAnalytics] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
+  // Response Filtering State
+  const [responseSearchQuery, setResponseSearchQuery] = useState('');
+  const [selectedRegionFilter, setSelectedRegionFilter] = useState('ALL');
+
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Topic binding state
   const [topicChatIdInput, setTopicChatIdInput] = useState('');
@@ -178,6 +187,11 @@ export default function AdminFormDetailPage() {
 
   const handleStatusChange = async (newStatus: FormStatus) => {
     if (!form || statusUpdating) return;
+    const actionLabel = newStatus === 'ACTIVE' ? '재활성화(ACTIVE)' : newStatus === 'CLOSED' ? '종료(CLOSED)' : '보관(ARCHIVED)';
+    if (!confirm(`설문 [${form.title}]의 상태를 "${actionLabel}"(으)로 변경하시겠습니까?`)) {
+      return;
+    }
+
     setStatusUpdating(true);
     try {
       const res = await fetch(`/api/admin/forms/${formId}`, {
@@ -198,6 +212,64 @@ export default function AdminFormDetailPage() {
       alert(err.message || '네트워크 오류');
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleDuplicateForm = async () => {
+    if (!form || duplicating) return;
+    if (!confirm(`[${form.title}] 설문을 복사하시겠습니까?\n(설문 설정 및 질문 목록만 복사되어 종료(CLOSED) 상태로 새 설문이 생성됩니다. 기존 응답은 복사되지 않습니다.)`)) {
+      return;
+    }
+
+    setDuplicating(true);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}/duplicate`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok && json.success && json.form) {
+        alert(json.message || '설문이 성공적으로 복사되었습니다.');
+        router.push(`/admin/forms/${json.form.id}`);
+      } else {
+        alert(json.error || '설문 복사에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
+  const handleDeleteForm = async () => {
+    if (!form || deleting) return;
+
+    if (form.responseCount > 0) {
+      alert(`[삭제 불가 안내]\n제출된 응답이 ${form.responseCount}건 존재하므로 설문을 영구 삭제할 수 없습니다.\n데이터 보존을 위해 상태를 "보관(ARCHIVED)"으로 변경해 주세요.`);
+      return;
+    }
+
+    if (!confirm(`[경고] 설문 [${form.title}]을(를) 영구 삭제하시겠습니까?\n삭제된 설문 및 질문 데이터는 복구할 수 없습니다.`)) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        alert('설문이 성공적으로 삭제되었습니다.');
+        router.push('/admin/forms');
+      } else {
+        alert(json.error || '설문 삭제에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -375,15 +447,37 @@ export default function AdminFormDetailPage() {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-wrap gap-y-2">
           {!isViewOnly && (
-            <button
-              onClick={() => router.push(`/admin/forms/${form.id}/edit`)}
-              className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center space-x-1.5 transition"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>설문 편집</span>
-            </button>
+            <>
+              <button
+                onClick={handleDuplicateForm}
+                disabled={duplicating}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center space-x-1 transition disabled:opacity-50"
+                title="설문 복사 (질문/설정만 복사, 응답 제외, CLOSED 상태로 생성)"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>{duplicating ? '복사 중...' : '복사'}</span>
+              </button>
+
+              <button
+                onClick={() => router.push(`/admin/forms/${form.id}/edit`)}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center space-x-1 transition"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>편집</span>
+              </button>
+
+              <button
+                onClick={handleDeleteForm}
+                disabled={deleting}
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl font-bold text-xs flex items-center space-x-1 transition disabled:opacity-50"
+                title={form.responseCount > 0 ? "응답이 존재하는 설문은 영구 삭제 불가 (보관 사용)" : "응답 0건인 설문 영구 삭제"}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{deleting ? '삭제 중...' : '삭제'}</span>
+              </button>
+            </>
           )}
 
           <div className="flex items-center bg-slate-100 p-1 rounded-xl">
@@ -615,76 +709,161 @@ export default function AdminFormDetailPage() {
       )}
 
       {/* TAB 2: INDIVIDUAL RESPONSES FEED */}
-      {activeTab === 'responses' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-            <div>
-              <h3 className="font-bold text-slate-900 text-sm">제출된 답변 목록</h3>
-              <p className="text-xs text-slate-500">실시간으로 접수된 총 {responses.length}건의 개별 응답입니다.</p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleCopyAllResponses}
-                disabled={responses.length === 0}
-                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center space-x-1 transition disabled:opacity-50"
-              >
-                <Copy className="w-3.5 h-3.5 text-slate-600" />
-                <span>{copiedType === 'all_responses' ? '복사 완료' : '전체 복사'}</span>
-              </button>
-              <button
-                onClick={handleDownloadCsv}
-                disabled={responses.length === 0}
-                className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1 shadow-sm transition disabled:opacity-50"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>CSV 내보내기</span>
-              </button>
-            </div>
-          </div>
+      {activeTab === 'responses' && (() => {
+        // Extract unique regions for filter
+        const regionsSet = new Set<string>();
+        responses.forEach((resp) => {
+          resp.answers?.forEach((ans) => {
+            if (ans.question_snapshot?.title === '지역' && ans.answer_value) {
+              regionsSet.add(ans.answer_value);
+            }
+          });
+        });
+        const regionOptions = Array.from(regionsSet);
 
-          {loadingResponses ? (
-            <div className="p-8 text-center text-xs text-slate-500">응답 목록을 불러오는 중...</div>
-          ) : responses.length === 0 ? (
-            <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs font-medium">
-              아직 제출된 응답이 없습니다.
+        // Filter responses by search query and region
+        const filteredResponses = responses.filter((resp) => {
+          const searchLower = responseSearchQuery.toLowerCase().trim();
+          let matchesSearch = true;
+          if (searchLower) {
+            const nameMatch = (resp.telegram_first_name || '').toLowerCase().includes(searchLower);
+            const usernameMatch = (resp.telegram_username || '').toLowerCase().includes(searchLower);
+            const answerMatch = resp.answers?.some((a) => (a.answer_value || '').toLowerCase().includes(searchLower));
+            matchesSearch = nameMatch || usernameMatch || Boolean(answerMatch);
+          }
+
+          let matchesRegion = true;
+          if (selectedRegionFilter !== 'ALL') {
+            const regionAns = resp.answers?.find((a) => a.question_snapshot?.title === '지역');
+            matchesRegion = regionAns ? regionAns.answer_value === selectedRegionFilter : false;
+          }
+
+          return matchesSearch && matchesRegion;
+        });
+
+        return (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm gap-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-sm">제출된 답변 목록</h3>
+                <p className="text-xs text-slate-500">실시간으로 접수된 총 {responses.length}건 (필터링 {filteredResponses.length}건)의 개별 응답입니다.</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleCopyAllResponses}
+                  disabled={responses.length === 0}
+                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center space-x-1 transition disabled:opacity-50"
+                >
+                  <Copy className="w-3.5 h-3.5 text-slate-600" />
+                  <span>{copiedType === 'all_responses' ? '복사 완료' : '전체 복사'}</span>
+                </button>
+                <button
+                  onClick={handleDownloadCsv}
+                  disabled={responses.length === 0}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1 shadow-sm transition disabled:opacity-50"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                  <span>CSV 내보내기</span>
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {responses.map((resp, rIdx) => (
-                <div key={resp.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-extrabold text-xs text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
-                        #{responses.length - rIdx}
-                      </span>
-                      <span className="font-bold text-xs text-slate-900">
-                        {resp.telegram_first_name || '이용자'}
-                        {resp.telegram_username && ` (@${resp.telegram_username})`}
+
+            {/* Filter Bar: Submitter Name Search & Region Select */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="응답자 이름, Username 또는 답변 검색..."
+                  value={responseSearchQuery}
+                  onChange={(e) => setResponseSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              </div>
+
+              {regionOptions.length > 0 && (
+                <div className="flex items-center space-x-2 shrink-0">
+                  <span className="text-xs font-bold text-slate-600 whitespace-nowrap">지역 필터:</span>
+                  <select
+                    value={selectedRegionFilter}
+                    onChange={(e) => setSelectedRegionFilter(e.target.value)}
+                    className="text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="ALL">전체 지역 ({responses.length}건)</option>
+                    {regionOptions.map((reg) => {
+                      const regCount = responses.filter((r) => r.answers?.some((a) => a.question_snapshot?.title === '지역' && a.answer_value === reg)).length;
+                      return (
+                        <option key={reg} value={reg}>
+                          {reg} ({regCount}건)
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {loadingResponses ? (
+              <div className="p-8 text-center text-xs text-slate-500">응답 목록을 불러오는 중...</div>
+            ) : filteredResponses.length === 0 ? (
+              <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-500 text-xs font-medium">
+                {responses.length === 0 ? '아직 제출된 응답이 없습니다.' : '검색 조건에 일치하는 응답이 없습니다.'}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredResponses.map((resp, rIdx) => (
+                  <div key={resp.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
+                      <div className="flex items-center space-x-2 flex-wrap">
+                        <span className="font-extrabold text-xs text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                          #{responses.length - rIdx}
+                        </span>
+                        <span className="font-bold text-xs text-slate-900">
+                          {resp.telegram_first_name || '이용자'}
+                          {resp.telegram_username && ` (@${resp.telegram_username})`}
+                        </span>
+
+                        {resp.telegram_username ? (
+                          <a
+                            href={`https://t.me/${resp.telegram_username}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center space-x-1 px-2 py-0.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-[10px] font-bold border border-blue-200 transition"
+                          >
+                            <Send className="w-3 h-3" />
+                            <span>Telegram 메시지 보내기 ↗</span>
+                          </a>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded-lg font-medium">
+                            Telegram ID: {resp.telegram_user_id}
+                          </span>
+                        )}
+                      </div>
+
+                      <span className="text-[11px] text-slate-400 font-mono self-end sm:self-auto">
+                        {new Date(resp.submitted_at).toLocaleString('ko-KR')}
                       </span>
                     </div>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(resp.submitted_at).toLocaleString('ko-KR')}
-                    </span>
-                  </div>
 
-                  <div className="space-y-2 pt-1">
-                    {resp.answers?.map((ans, aIdx) => (
-                      <div key={aIdx} className="bg-slate-50 p-3 rounded-xl space-y-1">
-                        <p className="text-xs font-bold text-slate-800">
-                          • {ans.question_snapshot?.title || '질문'}
-                        </p>
-                        <p className="text-xs text-blue-900 bg-white p-2.5 rounded-lg border border-slate-200 font-medium">
-                          {ans.answer_value || '(응답 없음)'}
-                        </p>
-                      </div>
-                    ))}
+                    <div className="space-y-2 pt-1">
+                      {resp.answers?.map((ans, aIdx) => (
+                        <div key={aIdx} className="bg-slate-50 p-3 rounded-xl space-y-1">
+                          <p className="text-xs font-bold text-slate-800">
+                            • {ans.question_snapshot?.title || '질문'}
+                          </p>
+                          <p className="text-xs text-blue-900 bg-white p-2.5 rounded-lg border border-slate-200 font-medium">
+                            {ans.answer_value || '(응답 없음)'}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* TAB 3: STATISTICAL ANALYTICS & VISUALIZATIONS */}
       {activeTab === 'analytics' && (

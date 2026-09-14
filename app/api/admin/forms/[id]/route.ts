@@ -243,3 +243,57 @@ export async function PATCH(
   }
 }
 
+// DELETE /api/admin/forms/[id] - Permanently delete form if 0 responses, block if responses exist (Archive required)
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { response } = await requireAdmin(req);
+  if (response) return response;
+
+  const formId = params.id;
+  if (!formId) {
+    return NextResponse.json({ error: '설문 ID가 필요합니다.' }, { status: 400 });
+  }
+
+  try {
+    const supabase = getServiceSupabase();
+
+    // 1. Check response count for this form
+    const { count, error: countErr } = await supabase
+      .from('responses')
+      .select('*', { count: 'exact', head: true })
+      .eq('form_id', formId);
+
+    if (countErr) {
+      return NextResponse.json({ error: `응답 수 확인 실패: ${countErr.message}` }, { status: 500 });
+    }
+
+    if (count && count > 0) {
+      return NextResponse.json({
+        error: `제출된 응답이 ${count}건 존재하므로 영구 삭제할 수 없습니다. 데이터 보존을 위해 보관(ARCHIVED) 상태로 변경해 주세요.`
+      }, { status: 400 });
+    }
+
+    // 2. Delete form (questions cascade automatically or via explicit deletion)
+    await supabase.from('questions').delete().eq('form_id', formId);
+    const { error: deleteErr } = await supabase
+      .from('forms')
+      .delete()
+      .eq('id', formId);
+
+    if (deleteErr) {
+      return NextResponse.json({ error: `설문 삭제 실패: ${deleteErr.message}` }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: '설문이 성공적으로 영구 삭제되었습니다.'
+    });
+  } catch (error: any) {
+    console.error('Delete form error:', error);
+    return NextResponse.json({ error: '서버 내부 오류가 발생했습니다.' }, { status: 500 });
+  }
+}
+
+

@@ -70,6 +70,33 @@ export default function AdminFormsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleDuplicate = async (formId: string, formTitle: string) => {
+    if (!confirm(`[${formTitle}] 설문의 설정 및 질문 목록을 복사하시겠습니까?\n(새 설문은 종료(CLOSED) 상태로 생성되며, 기존 응답은 복사되지 않습니다.)`)) {
+      return;
+    }
+
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (initData) headers['x-telegram-init-data'] = initData;
+      if (telegramUserId) headers['x-telegram-user-id'] = telegramUserId.toString();
+
+      const res = await fetch(`/api/admin/forms/${formId}/duplicate`, {
+        method: 'POST',
+        headers
+      });
+
+      const json = await res.json();
+      if (res.ok && json.success) {
+        alert(json.message || '설문이 성공적으로 복사되었습니다.');
+        fetchForms();
+      } else {
+        alert(json.error || '설문 복사에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류가 발생했습니다.');
+    }
+  };
+
   const canEditForm = role === 'SUPER_ADMIN' || role === 'ADMIN';
 
   return (
@@ -207,12 +234,23 @@ export default function AdminFormsPage() {
                     </Link>
 
                     {canEditForm && (
-                      <Link
-                        href={`/admin/forms/${form.id}/edit`}
-                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
-                      >
-                        편집
-                      </Link>
+                      <>
+                        <button
+                          onClick={() => handleDuplicate(form.id, form.title)}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center space-x-1"
+                          title="설문 복사 (질문/설정만 복사, 응답 제외, CLOSED 상태로 생성)"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>복사</span>
+                        </button>
+
+                        <Link
+                          href={`/admin/forms/${form.id}/edit`}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition"
+                        >
+                          편집
+                        </Link>
+                      </>
                     )}
                   </div>
                 </div>
