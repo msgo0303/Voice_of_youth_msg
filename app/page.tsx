@@ -1,37 +1,38 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
-import { Form } from '@/types/database';
-import { Sparkles, FileText, ArrowRight, Shield, MessageSquare, Link2 } from 'lucide-react';
+import { Sparkles, MessageSquare, Link2 } from 'lucide-react';
 
 export default function RootHomePage() {
   const router = useRouter();
-  const { role, user, isLoading: authLoading } = useTelegramAuth();
-  const [activeForms, setActiveForms] = useState<Form[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const { role, isLoading: authLoading } = useTelegramAuth();
+  const [minLoadingDone, setMinLoadingDone] = useState(false);
 
   const isAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'VIEWER';
 
-  // 0. Artificial 1-second initial loading timer
+  // 1. Artificial 1-second minimum loading timer for smooth UX
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsInitialLoading(false);
+      setMinLoadingDone(true);
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  // 1. Deep Link / start_param Redirection Effect
+  // 2. Redirection effect based on start_param or admin status
   useEffect(() => {
-    let targetFormId: string | null = null;
+    if (authLoading) return;
 
+    let targetFormId: string | null = null;
     if (typeof window !== 'undefined') {
       const tgStartParam = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
       const urlParams = new URLSearchParams(window.location.search);
-      const urlStartParam = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp') || urlParams.get('start_param') || urlParams.get('formId');
+      const urlStartParam =
+        urlParams.get('tgWebAppStartParam') ||
+        urlParams.get('startapp') ||
+        urlParams.get('start_param') ||
+        urlParams.get('formId');
 
       const rawParam = tgStartParam || urlStartParam;
       if (rawParam) {
@@ -41,34 +42,13 @@ export default function RootHomePage() {
 
     if (targetFormId) {
       router.replace(`/survey/${targetFormId}`);
+    } else if (isAdmin) {
+      router.replace('/admin');
     }
-  }, [router]);
+  }, [router, isAdmin, authLoading]);
 
-  // 2. Fetch Active Forms ONLY for Admin users
-  useEffect(() => {
-    if (!isAdmin) {
-      setLoading(false);
-      return;
-    }
-
-    async function fetchPublicActiveForms() {
-      try {
-        const res = await fetch('/api/admin/forms?status=ACTIVE');
-        const json = await res.json();
-        if (res.ok && json.success) {
-          setActiveForms(json.forms || []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch public active forms:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchPublicActiveForms();
-  }, [isAdmin]);
-
-  if (isInitialLoading) {
+  // Show loading screen while auth is loading, initial 1s timer is running, or admin is being redirected
+  if (authLoading || !minLoadingDone || isAdmin) {
     return (
       <div className="min-h-screen bg-[#FAF8FF] flex flex-col items-center justify-center p-4">
         <div className="flex flex-col items-center space-y-4 text-center">
@@ -77,7 +57,9 @@ export default function RootHomePage() {
           </div>
           <div className="space-y-1">
             <h1 className="font-extrabold text-slate-900 text-xl tracking-tight">FormGram</h1>
-            <p className="text-xs text-slate-500 font-medium">서비스를 불러오는 중입니다...</p>
+            <p className="text-xs text-slate-500 font-medium">
+              {isAdmin ? '관리자 센터로 이동 중입니다...' : '서비스를 불러오는 중입니다...'}
+            </p>
           </div>
           <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -85,6 +67,7 @@ export default function RootHomePage() {
     );
   }
 
+  // Non-Admin Fallback Landing View
   return (
     <div className="min-h-screen bg-[#FAF8FF] text-slate-900 flex flex-col">
       {/* Top Header */}
@@ -95,127 +78,43 @@ export default function RootHomePage() {
             <span className="font-extrabold text-slate-900 text-lg tracking-tight">FormGram</span>
           </div>
 
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1.5"
-              >
-                <Shield className="w-3.5 h-3.5" />
-                <span>관리자 센터 ({role})</span>
-              </Link>
-            ) : (
-              <a
-                href="https://t.me/Voymsg_bot"
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 border border-blue-200"
-              >
-                <MessageSquare className="w-3.5 h-3.5" />
-                <span>텔레그램 봇</span>
-              </a>
-            )}
-          </div>
+          <a
+            href="https://t.me/Voymsg_bot"
+            target="_blank"
+            rel="noreferrer"
+            className="px-3.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 border border-blue-200"
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>텔레그램 봇</span>
+          </a>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-4xl mx-auto px-4 py-8 flex-1 space-y-8">
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-3">
-          <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            <span>Voice of Youth Telegram Platform</span>
+      {/* Main Guidance */}
+      <main className="max-w-4xl mx-auto px-4 py-12 flex-1 flex flex-col justify-center items-center">
+        <div className="w-full bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 text-center space-y-5 shadow-sm max-w-lg">
+          <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+            <Link2 className="w-8 h-8" />
           </div>
-          <p className="text-xs sm:text-sm text-blue-100 leading-relaxed max-w-xl">
-            {isAdmin
-              ? '전달받으신 설문 개별 링크를 통해 응답하거나 상단 관리자 센터를 이용하세요.'
-              : '전달받으신 개별 설문 링크를 클릭하시면 해당 설문에 즉시 응답하실 수 있습니다.'}
-          </p>
-        </div>
-
-        {/* Content Section: Admin sees form list, Non-Admin sees landing guidance */}
-        {isAdmin ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <span>진행 중인 설문 목록 (관리자 전용)</span>
-              </h2>
-              <span className="text-xs font-semibold text-slate-500">
-                {loading ? '불러오는 중...' : `총 ${activeForms.length}개`}
-              </span>
-            </div>
-
-            {loading ? (
-              <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-sm text-slate-500">
-                설문 목록을 불러오는 중입니다...
-              </div>
-            ) : activeForms.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {activeForms.map((form) => (
-                  <Link
-                    key={form.id}
-                    href={`/survey/${form.id}`}
-                    className="bg-white p-5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-md transition space-y-3 flex flex-col justify-between group"
-                  >
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full uppercase">
-                        진행중
-                      </span>
-                      <h3 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition">
-                        {form.title}
-                      </h3>
-                      {form.description && (
-                        <p className="text-xs text-slate-500 line-clamp-2">{form.description}</p>
-                      )}
-                    </div>
-
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-blue-600">
-                      <span className="flex items-center space-x-1">
-                        <span>설문 참여</span>
-                        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                      <Link
-                        href={`/admin/forms/${form.id}?tab=responses`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="px-2.5 py-1 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white rounded-lg text-xs font-bold transition border border-blue-200"
-                      >
-                        📊 제출 응답 보기
-                      </Link>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white p-12 rounded-2xl border border-slate-200 text-center text-slate-500 space-y-2">
-                <FileText className="w-10 h-10 text-slate-300 mx-auto" />
-                <p className="font-semibold text-sm">현재 공개 진행 중인 설문이 없습니다.</p>
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="bg-white p-8 sm:p-12 rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
-            <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto">
-              <Link2 className="w-7 h-7" />
-            </div>
+          <div className="space-y-2">
             <h2 className="text-lg sm:text-xl font-bold text-slate-900">전달받으신 설문 주소로 접속해 주세요</h2>
-            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
               개별 설문 링크(예: Telegram 딥링크)를 통해 접속하시면 해당 설문 작성 페이지로 바로 이동합니다.<br />
               전달받으신 설문 링크를 확인해 주세요.
             </p>
-            <div className="pt-2">
-              <a
-                href="https://t.me/Voymsg_bot"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition"
-              >
-                <MessageSquare className="w-4 h-4" />
-                <span>텔레그램 봇 메인으로 이동 (@Voymsg_bot)</span>
-              </a>
-            </div>
           </div>
-        )}
+          <div className="pt-2">
+            <a
+              href="https://t.me/Voymsg_bot"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center space-x-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow transition"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>텔레그램 봇 메인으로 이동 (@Voymsg_bot)</span>
+            </a>
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
