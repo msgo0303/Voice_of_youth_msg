@@ -12,8 +12,17 @@ export default function RootHomePage() {
   const { role, user, isLoading: authLoading } = useTelegramAuth();
   const [activeForms, setActiveForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   const isAdmin = role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'VIEWER';
+
+  // 0. Artificial 1-second initial loading timer
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 1. Deep Link / start_param Redirection Effect
   useEffect(() => {
@@ -59,6 +68,23 @@ export default function RootHomePage() {
     fetchPublicActiveForms();
   }, [isAdmin]);
 
+  if (isInitialLoading) {
+    return (
+      <div className="min-h-screen bg-[#FAF8FF] flex flex-col items-center justify-center p-4">
+        <div className="flex flex-col items-center space-y-4 text-center">
+          <div className="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/25 animate-pulse">
+            <Sparkles className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="font-extrabold text-slate-900 text-xl tracking-tight">FormGram</h1>
+            <p className="text-xs text-slate-500 font-medium">서비스를 불러오는 중입니다...</p>
+          </div>
+          <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAF8FF] text-slate-900 flex flex-col">
       {/* Top Header */}
@@ -95,30 +121,16 @@ export default function RootHomePage() {
 
       {/* Hero Section */}
       <main className="max-w-4xl mx-auto px-4 py-8 flex-1 space-y-8">
-        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-4">
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 rounded-3xl p-6 sm:p-8 text-white shadow-xl space-y-3">
           <div className="inline-flex items-center space-x-2 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>Voice of Youth Telegram Platform</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black leading-tight">
-            텔레그램 연동 스마트 설문 플랫폼
-          </h1>
           <p className="text-xs sm:text-sm text-blue-100 leading-relaxed max-w-xl">
             {isAdmin
-              ? '전달받으신 설문 개별 링크를 통해 응답하거나 관리자 전용 대시보드로 이동하세요.'
+              ? '전달받으신 설문 개별 링크를 통해 응답하거나 상단 관리자 센터를 이용하세요.'
               : '전달받으신 개별 설문 링크를 클릭하시면 해당 설문에 즉시 응답하실 수 있습니다.'}
           </p>
-          {isAdmin && (
-            <div className="pt-2">
-              <Link
-                href="/admin"
-                className="inline-flex items-center space-x-2 bg-white text-blue-700 hover:bg-blue-50 px-4 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm shadow-md transition"
-              >
-                <Shield className="w-4 h-4 text-blue-600" />
-                <span>👑 관리자 센터 대시보드 바로가기 ➔</span>
-              </Link>
-            </div>
-          )}
         </div>
 
         {/* Content Section: Admin sees form list, Non-Admin sees landing guidance */}
