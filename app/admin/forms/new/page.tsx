@@ -26,7 +26,8 @@ import {
   Copy,
   Check,
   ExternalLink,
-  Share2
+  Share2,
+  MapPin
 } from 'lucide-react';
 
 interface EditableQuestion {
@@ -49,8 +50,8 @@ const DEFAULT_QUESTIONS: EditableQuestion[] = [
   },
   {
     id: 'default-2',
-    title: '직분',
-    description: '교회 직분을 입력해 주세요 (예: 청년, 성도, 집사 등)',
+    title: '직책',
+    description: '직책을 입력해 주세요 (예: 구역장, 회원, 기능교관 등)',
     type: 'SHORT_TEXT',
     options: [],
     required: true
@@ -153,6 +154,23 @@ export default function NewFormBuilderPage() {
       required: true
     };
 
+    setQuestions([...questions, newQ]);
+  };
+
+  const addRegionQuestion = () => {
+    if (questions.some(q => q.title.trim() === '지역')) {
+      alert("이미 '지역' 질문이 설문에 포함되어 있습니다.");
+      return;
+    }
+    const newId = `q-${Date.now()}`;
+    const newQ: EditableQuestion = {
+      id: newId,
+      title: '지역',
+      description: '소속된 지역구를 선택해 주세요.',
+      type: 'DROPDOWN',
+      options: ['사당', '안양', '신림', '신사', '군포', '서울역', '새신자', '대학'],
+      required: true
+    };
     setQuestions([...questions, newQ]);
   };
 
@@ -313,7 +331,7 @@ export default function NewFormBuilderPage() {
         <div>
           <h3 className="font-bold text-blue-900 text-sm">기본 필수 질문 자동 바인딩 완료</h3>
           <p className="text-xs text-blue-700 mt-0.5">
-            신원 확인용 기본 질문 (<strong>지역, 직분, 이름</strong>) 3건이 자동으로 구성되었습니다. 필요 시 순서 변경 및 수정이 가능합니다.
+            신원 확인용 기본 질문 (<strong>지역, 직책, 이름</strong>) 3건이 자동으로 구성되었습니다. 필요 시 순서 변경 및 수정이 가능합니다.
           </p>
         </div>
       </div>
@@ -569,6 +587,14 @@ export default function NewFormBuilderPage() {
           <p className="text-xs font-bold text-slate-700">새 질문 유형 추가하기</p>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <button
+              onClick={addRegionQuestion}
+              className="p-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-extrabold flex items-center justify-center space-x-1.5 transition shadow-sm"
+            >
+              <MapPin className="w-4 h-4 text-blue-600" />
+              <span>📍 지역 (기본)</span>
+            </button>
+
+            <button
               onClick={() => addQuestion('SHORT_TEXT')}
               className="p-2.5 bg-slate-50 hover:bg-blue-50 hover:text-blue-700 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center space-x-1.5 transition"
             >
@@ -625,6 +651,23 @@ export default function NewFormBuilderPage() {
             </button>
           </div>
         </div>
+
+        {/* Bottom Save & Activate Action Bar */}
+        {!isViewOnly && (
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-md flex items-center justify-between space-x-4">
+            <p className="text-xs text-slate-500 font-medium hidden sm:block">
+              설문 작성을 완료하셨나요? 아래 버튼을 눌러 저장하고 활성화하세요.
+            </p>
+            <button
+              onClick={handleSaveAndActivate}
+              disabled={saving}
+              className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm px-8 py-3 rounded-xl shadow-lg active:scale-95 transition disabled:opacity-50 whitespace-nowrap ml-auto"
+            >
+              <CheckCircle2 className="w-5 h-5" />
+              <span>{saving ? '저장 중...' : '저장 & 활성화'}</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Success Modal with Share & Copy Links */}

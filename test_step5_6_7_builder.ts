@@ -67,16 +67,16 @@ async function runStep567Tests() {
     "1. SUPER_ADMIN -> 설문 생성/질문 편집 권한 통과"
   );
 
-  // 2. Step 7 Default Template Questions (지역, 직분, 이름)
+  // 2. Step 7 Default Template Questions (지역, 직책, 이름)
   const defaultQuestions = [
     { title: '지역', type: 'DROPDOWN', required: true, options: ['사당', '안양', '신림', '신사', '군포', '서울역', '새신자', '대학'] },
-    { title: '직분', type: 'SHORT_TEXT', required: true, options: [] },
+    { title: '직책', type: 'SHORT_TEXT', required: true, options: [] },
     { title: '이름', type: 'SHORT_TEXT', required: true, options: [] }
   ];
 
   assert(
     defaultQuestions.length === 3 && defaultQuestions[0].title === '지역' && defaultQuestions[0].options.length === 8,
-    "2. Step 7 기본 템플릿 바인딩: 신원 확인용 기본 문항(지역, 직분, 이름) 자동 바인딩 성공"
+    "2. Step 7 기본 템플릿 바인딩: 신원 확인용 기본 문항(지역, 직책, 이름) 자동 바인딩 성공"
   );
 
   // 3. Step 6 Support for 7 Question Types
