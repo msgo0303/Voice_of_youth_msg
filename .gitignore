@@ -16,3 +16,4 @@
 *.pem
 .vscode/
 .idea/
+*.tsbuildinfo

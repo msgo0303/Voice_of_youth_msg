@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { Form, Question, FormStatus } from '@/types/database';
 import { getTelegramMiniAppUrl } from '@/lib/telegramLink';
+import SurveyQRCode from '@/components/SurveyQRCode';
 import {
   ArrowLeft,
   Calendar,
@@ -582,6 +583,13 @@ export default function AdminFormDetailPage() {
       {/* TAB 1: FORM INFO & SHARE LINKS */}
       {activeTab === 'info' && (
         <div className="space-y-6">
+          {/* Survey QR Code Card */}
+          <SurveyQRCode
+            formId={form.id}
+            formTitle={form.title}
+            surveyUrl={tgUrl}
+          />
+
           {/* Share Links Card */}
           <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="font-extrabold text-slate-900 text-sm flex items-center space-x-1.5">
