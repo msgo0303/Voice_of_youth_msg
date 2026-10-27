@@ -218,7 +218,7 @@ export async function PUT(
       let messageText = `✏️ <b>[설문 응답 수정 알림]</b>\n`;
       messageText += `📌 <b>설문 제목</b>: ${escapeHtml(form.title)}\n`;
       messageText += `👤 <b>응답자</b>: ${escapeHtml(session.user.first_name || '이용자')}${session.user.username ? ` (@${escapeHtml(session.user.username)})` : ''}\n`;
-      messageText += `🕒 <b>수정 일시</b>: ${new Date().toLocaleString('ko-KR')}\n\n`;
+      messageText += `🕒 <b>수정 일시</b>: ${new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n\n`;
 
       questions.forEach((q: any, idx: number) => {
         const ansVal = answers[q.id] || '(응답 없음)';

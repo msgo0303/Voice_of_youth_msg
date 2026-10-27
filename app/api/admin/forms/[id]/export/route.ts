@@ -88,8 +88,8 @@ export async function GET(
 
       const row = [
         resp.id,
-        new Date(resp.submitted_at).toLocaleString('ko-KR'),
-        new Date(resp.updated_at).toLocaleString('ko-KR'),
+        new Date(resp.submitted_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
+        new Date(resp.updated_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }),
         resp.is_edited ? '수정됨' : '최초 제출',
         resp.telegram_user_id,
         resp.telegram_first_name || '이용자',

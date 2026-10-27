@@ -325,7 +325,7 @@ export default function AdminFormDetailPage() {
     let exportText = `📋 [${form?.title}] 제출 답변 목록 (총 ${responses.length}건)\n====================================\n\n`;
 
     responses.forEach((resp, rIdx) => {
-      exportText += `[응답 #${rIdx + 1}] ${resp.telegram_first_name || '이용자'}${resp.telegram_username ? ` (@${resp.telegram_username})` : ''} | ${new Date(resp.submitted_at).toLocaleString('ko-KR')}\n`;
+      exportText += `[응답 #${rIdx + 1}] ${resp.telegram_first_name || '이용자'}${resp.telegram_username ? ` (@${resp.telegram_username})` : ''} | ${new Date(resp.submitted_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}\n`;
       resp.answers?.forEach((ans) => {
         exportText += `  • ${ans.question_snapshot?.title || '질문'}: ${ans.answer_value || '(응답 없음)'}\n`;
       });
@@ -920,7 +920,7 @@ export default function AdminFormDetailPage() {
                       </div>
 
                       <span className="text-[11px] text-slate-400 font-mono self-end sm:self-auto">
-                        {new Date(resp.submitted_at).toLocaleString('ko-KR')}
+                        {new Date(resp.submitted_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                       </span>
                     </div>
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthSessionFromRequest } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/supabase';
 import { sendTelegramBotMessage } from '@/lib/telegramBot';
+import { formatKstDateTime } from '@/lib/dateUtils';
 
 function escapeHtml(text: string): string {
   if (!text) return '';
@@ -256,8 +257,7 @@ export async function POST(
     };
 
     // 5. Construct Telegram HTML Message
-    const now = new Date();
-    const formattedNow = `${now.getFullYear()}. ${String(now.getMonth() + 1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const formattedNow = formatKstDateTime();
 
     let msg = `📋 <b>[줌 사전 신청 현황 명단]</b>\n`;
     msg += `📌 <b>설문</b>: ${escapeHtml(form.title)}\n`;
