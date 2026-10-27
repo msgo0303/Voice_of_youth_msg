@@ -4,6 +4,11 @@ import { getServiceSupabase } from '@/lib/supabase';
 import { sendTelegramBotMessage } from '@/lib/telegramBot';
 import { QuestionSnapshot } from '@/types/database';
 import { decodeQuestionFromDb } from '@/lib/questionTypeMapper';
+import {
+  isZoomScheduleSurvey,
+  sendZoomScheduleSummaryToTelegram,
+  deduplicateFormResponsesByApplicant
+} from '@/lib/scheduleSummary';
 
 // GET /api/survey/response/[responseId] - Fetch specific response details with strict ownership verification
 export async function GET(
@@ -204,6 +209,9 @@ export async function PUT(
       return NextResponse.json({ error: `수정된 답변 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
+    // 4.5. Clean up duplicate submissions with the same (지역, 구역, 이름)
+    await deduplicateFormResponsesByApplicant(form.id);
+
     // 5. Send Telegram Notification about Response Edit
     try {
       const escapeHtml = (str: string) =>
@@ -231,6 +239,11 @@ export async function PUT(
         text: messageText,
         parse_mode: 'HTML'
       });
+
+      // 줌 사전 신청서인 경우 최신 현황 명단도 함께 발송
+      if (isZoomScheduleSurvey(form.title, questions)) {
+        await sendZoomScheduleSummaryToTelegram(form.id);
+      }
     } catch (tgErr) {
       console.warn('Failed to send Telegram response update notification:', tgErr);
     }

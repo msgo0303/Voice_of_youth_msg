@@ -4,6 +4,11 @@ import { getServiceSupabase } from '@/lib/supabase';
 import { sendTelegramBotMessage } from '@/lib/telegramBot';
 import { QuestionSnapshot } from '@/types/database';
 import { decodeQuestionFromDb } from '@/lib/questionTypeMapper';
+import {
+  isZoomScheduleSurvey,
+  sendZoomScheduleSummaryToTelegram,
+  deduplicateFormResponsesByApplicant
+} from '@/lib/scheduleSummary';
 
 // GET /api/survey/[id]/submit - Fetch existing user response for this form
 export async function GET(
@@ -177,6 +182,9 @@ export async function POST(
       return NextResponse.json({ error: `답변 상세 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
+    // 6.5. '지역', '구역', '이름'이 같은 이전 제출 건이 있는 경우 최신 제출 건만 유지하도록 정리
+    await deduplicateFormResponsesByApplicant(formId);
+
     // 7. Send Telegram Notification to target chat & topic
     let telegramMessageId: number | null = null;
     try {
@@ -239,6 +247,11 @@ export async function POST(
           .eq('id', newResponse.id);
       } else {
         console.warn('Telegram bot sendMessage failed:', telegramRes.error);
+      }
+
+      // 줌 사전 신청서 설문인 경우, [줌 사전 신청 현황 명단]도 함께 발송
+      if (isZoomScheduleSurvey(form.title, questions)) {
+        await sendZoomScheduleSummaryToTelegram(formId);
       }
     } catch (tgErr) {
       console.warn('Failed to dispatch Telegram response notification:', tgErr);
@@ -389,6 +402,9 @@ export async function PUT(
       return NextResponse.json({ error: `수정된 답변 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
+    // 6.5. '지역', '구역', '이름'이 같은 이전 제출 건이 있는 경우 최신 제출 건만 유지하도록 정리
+    await deduplicateFormResponsesByApplicant(formId);
+
     // 7. Send Telegram Notification about Response Edit
     try {
       const escapeHtml = (str: string) =>
@@ -416,6 +432,11 @@ export async function PUT(
         text: messageText,
         parse_mode: 'HTML'
       });
+
+      // 줌 사전 신청서 설문인 경우, [줌 사전 신청 현황 명단]도 함께 발송
+      if (isZoomScheduleSurvey(form.title, questions)) {
+        await sendZoomScheduleSummaryToTelegram(formId);
+      }
     } catch (tgErr) {
       console.warn('Failed to send response update notification:', tgErr);
     }
