@@ -101,6 +101,7 @@ export default function AdminFormDetailPage() {
   const [duplicating, setDuplicating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sendingSummary, setSendingSummary] = useState(false);
+  const [deletingResponseId, setDeletingResponseId] = useState<string | null>(null);
 
   // Topic binding state
   const [topicChatIdInput, setTopicChatIdInput] = useState('');
@@ -272,6 +273,34 @@ export default function AdminFormDetailPage() {
       alert(err.message || '네트워크 오류가 발생했습니다.');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDeleteResponse = async (responseId: string, respondentName: string) => {
+    if (deletingResponseId) return;
+    if (!confirm(`[응답 삭제 확인]\n"${respondentName}" 님의 응답을 DB에서 영구 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 설문 통계에서도 즉시 제외됩니다.`)) {
+      return;
+    }
+
+    setDeletingResponseId(responseId);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}/responses?responseId=${responseId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setResponses((prev) => prev.filter((r) => r.id !== responseId));
+        setForm((prev) => prev ? { ...prev, responseCount: Math.max(0, (prev.responseCount || 1) - 1) } : null);
+        alert('응답이 DB에서 영구 삭제되었습니다.');
+        fetchAnalytics();
+      } else {
+        alert(json.error || '응답 삭제에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setDeletingResponseId(null);
     }
   };
 
@@ -919,9 +948,22 @@ export default function AdminFormDetailPage() {
                         )}
                       </div>
 
-                      <span className="text-[11px] text-slate-400 font-mono self-end sm:self-auto">
-                        {new Date(resp.submitted_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
-                      </span>
+                      <div className="flex items-center space-x-2 self-end sm:self-auto">
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {new Date(resp.submitted_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+                        </span>
+
+                        {!isViewOnly && (
+                          <button
+                            onClick={() => handleDeleteResponse(resp.id, resp.telegram_first_name || '이용자')}
+                            disabled={deletingResponseId === resp.id}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition disabled:opacity-50"
+                            title="이 응답을 DB에서 영구 삭제"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-2 pt-1">
