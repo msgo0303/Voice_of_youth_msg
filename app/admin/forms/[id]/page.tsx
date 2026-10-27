@@ -100,6 +100,7 @@ export default function AdminFormDetailPage() {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [sendingSummary, setSendingSummary] = useState(false);
 
   // Topic binding state
   const [topicChatIdInput, setTopicChatIdInput] = useState('');
@@ -377,6 +378,40 @@ export default function AdminFormDetailPage() {
     }
   };
 
+  const isScheduleSurvey =
+    (form?.title && form.title.includes('줌')) ||
+    questions.some((q) => {
+      const titleMatches = /일시|시간|일정/.test(q.title);
+      const optionsMatch = Array.isArray(q.options) && q.options.some((opt: string) => /수\s*\d|일\s*\d/.test(opt));
+      return (q.type === 'MULTIPLE_CHOICE' || (q.type as string) === 'CHECKBOX') && (titleMatches || optionsMatch);
+    });
+
+  const handleSendScheduleSummary = async () => {
+    if (sendingSummary) return;
+
+    if (!confirm(`[${form?.title || '줌 사전 신청서'}] 시간대별 명단을 텔레그램으로 전송하시겠습니까?\n\n• 수요일 / 일요일 총 참여 인원이 분리 집계되어 텔레그램 방으로 발송됩니다.`)) {
+      return;
+    }
+
+    setSendingSummary(true);
+    try {
+      const res = await fetch(`/api/admin/forms/${formId}/send-schedule-summary`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        alert(`✅ 텔레그램 전송 완료!\n\n• 수요일 총 참여: ${json.stats?.wednesdayCount || 0}명\n• 일요일 총 참여: ${json.stats?.sundayCount || 0}명\n• 총 응답 접수: ${json.stats?.totalResponses || 0}건`);
+      } else {
+        alert(json.error || '텔레그램 전송에 실패했습니다.');
+      }
+    } catch (err: any) {
+      alert(err.message || '네트워크 오류가 발생했습니다.');
+    } finally {
+      setSendingSummary(false);
+    }
+  };
+
   const handleDownloadJson = () => {
     if (!analytics) return;
     const jsonStr = JSON.stringify(analytics, null, 2);
@@ -534,6 +569,31 @@ export default function AdminFormDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Special Schedule Summary Banner (Zoom Application) */}
+      {isScheduleSurvey && (
+        <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-600 p-5 rounded-2xl text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2">
+              <span className="bg-white/20 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-sm">
+                줌 사전 신청 전용
+              </span>
+              <h3 className="font-extrabold text-base">📢 시간대별 신청자 명단 텔레그램 발송</h3>
+            </div>
+            <p className="text-xs text-blue-100">
+              수요일(4개 시간대)과 일요일(5개 시간대)의 <b>총 참여인원을 요일별로 분리</b>하고, 선택자 명단을 텔레그램 방으로 전송합니다.
+            </p>
+          </div>
+          <button
+            onClick={handleSendScheduleSummary}
+            disabled={sendingSummary || responses.length === 0}
+            className="px-4 py-2.5 bg-white hover:bg-blue-50 text-blue-700 font-extrabold text-xs rounded-xl shadow-sm transition flex items-center justify-center space-x-1.5 whitespace-nowrap disabled:opacity-50"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span>{sendingSummary ? '텔레그램 발송 중...' : '텔레그램으로 명단 전송'}</span>
+          </button>
+        </div>
+      )}
 
       {/* Navigation Tabs Header */}
       <div className="flex items-center space-x-2 border-b border-slate-200 pb-1">
@@ -773,6 +833,17 @@ export default function AdminFormDetailPage() {
                   <FileSpreadsheet className="w-3.5 h-3.5" />
                   <span>CSV 내보내기</span>
                 </button>
+                {isScheduleSurvey && (
+                  <button
+                    onClick={handleSendScheduleSummary}
+                    disabled={sendingSummary || responses.length === 0}
+                    className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1 shadow-sm transition disabled:opacity-50"
+                    title="수요일/일요일 요일별 총 참여인원 및 시간대별 명단 텔레그램 전송"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{sendingSummary ? '전송 중...' : '명단 텔레그램 전송'}</span>
+                  </button>
+                )}
               </div>
             </div>
 
