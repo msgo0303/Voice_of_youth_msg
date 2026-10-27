@@ -65,7 +65,7 @@ export async function POST(
       return NextResponse.json({ error: '시간대/일정 선택 문항을 찾을 수 없습니다.' }, { status: 400 });
     }
 
-    // 4. Fetch all Responses with their answers
+    // 4. Fetch all Responses with their answers (including question_snapshot)
     const { data: responses, error: respErr } = await supabase
       .from('responses')
       .select(`
@@ -76,7 +76,8 @@ export async function POST(
         submitted_at,
         response_answers (
           question_id,
-          answer_value
+          answer_value,
+          question_snapshot
         )
       `)
       .eq('form_id', formId)
@@ -86,9 +87,21 @@ export async function POST(
       return NextResponse.json({ error: '응답 데이터를 불러오지 못했습니다.' }, { status: 500 });
     }
 
-    // Fixed Slots Definition (수요일 4개, 일요일 5개)
-    const wednesdaySlots = ['수 07:00', '수 12:00', '수 19:30', '수 22:00'];
-    const sundaySlots = ['일 08:00', '일 12:00', '일 15:30', '일 19:30', '일 22:00'];
+    // Slots Definition (수요일 4개, 일요일 기본 5개)
+    // If the form has explicit options in scheduleQuestion, honor all of them
+    const rawOptions = (Array.isArray(scheduleQuestion?.options) ? scheduleQuestion.options : [])
+      .filter((opt: any) => typeof opt === 'string' && !opt.startsWith('__type:'));
+
+    const defaultWedSlots = ['수 07:00', '수 12:00', '수 19:30', '수 22:00'];
+    const defaultSunSlots = ['일 08:00', '일 12:00', '일 15:30', '일 19:30', '일 22:00'];
+
+    const wednesdaySlots = rawOptions.filter((opt: string) => opt.startsWith('수')).length > 0
+      ? rawOptions.filter((opt: string) => opt.startsWith('수'))
+      : defaultWedSlots;
+
+    const sundaySlots = rawOptions.filter((opt: string) => opt.startsWith('일')).length > 0
+      ? rawOptions.filter((opt: string) => opt.startsWith('일'))
+      : defaultSunSlots;
 
     // Map: slotName -> Set of respondent display names
     const slotMap: Record<string, string[]> = {};
@@ -103,13 +116,15 @@ export async function POST(
     (responses || []).forEach((resp: any) => {
       const answerRows = resp.response_answers || [];
 
-      // Determine respondent display name
+      // Determine respondent display name: check snapshot title or question_id
       let displayName = '';
-      if (nameQuestion) {
-        const nameAns = answerRows.find((a: any) => a.question_id === nameQuestion.id);
-        if (nameAns && nameAns.answer_value && nameAns.answer_value.trim()) {
-          displayName = nameAns.answer_value.trim();
-        }
+      const nameAns = answerRows.find((a: any) => {
+        const title = a.question_snapshot?.title || '';
+        return /이름|성함|성명|인적|구역|지역/.test(title) || (nameQuestion && a.question_id === nameQuestion.id);
+      });
+
+      if (nameAns && nameAns.answer_value && nameAns.answer_value.trim()) {
+        displayName = nameAns.answer_value.trim();
       }
 
       if (!displayName) {
@@ -119,8 +134,13 @@ export async function POST(
         }
       }
 
-      // Check chosen schedule options
-      const schedAns = answerRows.find((a: any) => a.question_id === scheduleQuestion.id);
+      // Check chosen schedule options: check snapshot title/type or question_id
+      const schedAns = answerRows.find((a: any) => {
+        const title = a.question_snapshot?.title || '';
+        const type = a.question_snapshot?.type || '';
+        return /일시|시간|일정/.test(title) || type === 'MULTIPLE_CHOICE' || (scheduleQuestion && a.question_id === scheduleQuestion.id);
+      });
+
       if (!schedAns || !schedAns.answer_value) return;
 
       const rawVal = schedAns.answer_value.trim();
@@ -154,7 +174,7 @@ export async function POST(
           if (matchedSlot.startsWith('수')) hasWed = true;
           if (matchedSlot.startsWith('일')) hasSun = true;
         } else {
-          // If option is custom or not in standard list, handle dynamically
+          // If option is custom or dynamic
           if (!slotMap[chosenOpt]) {
             slotMap[chosenOpt] = [];
           }
@@ -184,7 +204,7 @@ export async function POST(
     msg += `🗓️ <b>[수요일] 총 참여: ${wednesdayParticipants.size}명</b>\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
 
-    wednesdaySlots.forEach((slot) => {
+    wednesdaySlots.forEach((slot: string) => {
       const timeOnly = slot.replace(/^수\s*/, '');
       const members = slotMap[slot] || [];
       const count = members.length;
@@ -199,7 +219,7 @@ export async function POST(
     msg += `🗓️ <b>[일요일] 총 참여: ${sundayParticipants.size}명</b>\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━\n`;
 
-    sundaySlots.forEach((slot) => {
+    sundaySlots.forEach((slot: string) => {
       const timeOnly = slot.replace(/^일\s*/, '');
       const members = slotMap[slot] || [];
       const count = members.length;
