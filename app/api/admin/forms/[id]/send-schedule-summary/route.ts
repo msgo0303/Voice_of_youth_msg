@@ -103,9 +103,16 @@ export async function POST(
       ? rawOptions.filter((opt: string) => opt.startsWith('일'))
       : defaultSunSlots;
 
-    // Map: slotName -> Set of respondent display names
-    const slotMap: Record<string, string[]> = {};
-    [...wednesdaySlots, ...sundaySlots].forEach((slot) => {
+    interface ParticipantInfo {
+      regionNum: number;
+      sectionNum: number;
+      name: string;
+      displayName: string;
+    }
+
+    // Map: slotName -> List of ParticipantInfo
+    const slotMap: Record<string, ParticipantInfo[]> = {};
+    [...wednesdaySlots, ...sundaySlots].forEach((slot: string) => {
       slotMap[slot] = [];
     });
 
@@ -116,15 +123,55 @@ export async function POST(
     (responses || []).forEach((resp: any) => {
       const answerRows = resp.response_answers || [];
 
-      // Determine respondent display name: check snapshot title or question_id
-      let displayName = '';
-      const nameAns = answerRows.find((a: any) => {
-        const title = a.question_snapshot?.title || '';
-        return /이름|성함|성명|인적|구역|지역/.test(title) || (nameQuestion && a.question_id === nameQuestion.id);
+      // 1. Separate questions: '지역', '구역', '이름'
+      const regionAns = answerRows.find((a: any) => {
+        const title = (a.question_snapshot?.title || '').trim();
+        return title === '지역' || title.endsWith('지역');
       });
 
-      if (nameAns && nameAns.answer_value && nameAns.answer_value.trim()) {
-        displayName = nameAns.answer_value.trim();
+      const sectionAns = answerRows.find((a: any) => {
+        const title = (a.question_snapshot?.title || '').trim();
+        return title === '구역' || title.endsWith('구역');
+      });
+
+      const nameAns = answerRows.find((a: any) => {
+        const title = (a.question_snapshot?.title || '').trim();
+        return title === '이름' || title.endsWith('이름') || /성함|성명/.test(title);
+      });
+
+      // Fallback: previous combined question '지역/구역/이름'
+      const combinedAns = answerRows.find((a: any) => {
+        const title = (a.question_snapshot?.title || '').trim();
+        return /지역.*구역.*이름/.test(title);
+      });
+
+      let regionNum = 999;
+      let sectionNum = 999;
+      let nameStr = '';
+      let displayName = '';
+
+      if (regionAns && sectionAns && nameAns) {
+        regionNum = parseInt(String(regionAns.answer_value).replace(/[^0-9]/g, ''), 10) || 999;
+        sectionNum = parseInt(String(sectionAns.answer_value).replace(/[^0-9]/g, ''), 10) || 999;
+        nameStr = (nameAns.answer_value || '').trim();
+        const rDisplay = regionNum !== 999 ? regionNum : (regionAns.answer_value || '?');
+        const sDisplay = sectionNum !== 999 ? sectionNum : (sectionAns.answer_value || '?');
+        displayName = `${rDisplay}-${sDisplay} ${nameStr}`;
+      } else if (combinedAns && combinedAns.answer_value) {
+        const raw = combinedAns.answer_value.trim();
+        const m = raw.match(/^(\d+)[\/\-\s]+(\d+)[\/\-\s]+(.+)$/);
+        if (m) {
+          regionNum = parseInt(m[1], 10) || 999;
+          sectionNum = parseInt(m[2], 10) || 999;
+          nameStr = m[3].trim();
+          displayName = `${regionNum}-${sectionNum} ${nameStr}`;
+        } else {
+          displayName = raw;
+          nameStr = raw;
+        }
+      } else if (nameAns && nameAns.answer_value) {
+        nameStr = nameAns.answer_value.trim();
+        displayName = nameStr;
       }
 
       if (!displayName) {
@@ -132,7 +179,15 @@ export async function POST(
         if (resp.telegram_username) {
           displayName += `(@${resp.telegram_username})`;
         }
+        nameStr = displayName;
       }
+
+      const participant: ParticipantInfo = {
+        regionNum,
+        sectionNum,
+        name: nameStr,
+        displayName
+      };
 
       // Check chosen schedule options: check snapshot title/type or question_id
       const schedAns = answerRows.find((a: any) => {
@@ -168,8 +223,8 @@ export async function POST(
         });
 
         if (matchedSlot) {
-          if (!slotMap[matchedSlot].includes(displayName)) {
-            slotMap[matchedSlot].push(displayName);
+          if (!slotMap[matchedSlot].some((p) => p.displayName === displayName)) {
+            slotMap[matchedSlot].push(participant);
           }
           if (matchedSlot.startsWith('수')) hasWed = true;
           if (matchedSlot.startsWith('일')) hasSun = true;
@@ -178,8 +233,8 @@ export async function POST(
           if (!slotMap[chosenOpt]) {
             slotMap[chosenOpt] = [];
           }
-          if (!slotMap[chosenOpt].includes(displayName)) {
-            slotMap[chosenOpt].push(displayName);
+          if (!slotMap[chosenOpt].some((p) => p.displayName === displayName)) {
+            slotMap[chosenOpt].push(participant);
           }
           if (chosenOpt.startsWith('수')) hasWed = true;
           if (chosenOpt.startsWith('일')) hasSun = true;
@@ -190,6 +245,15 @@ export async function POST(
       if (hasWed) wednesdayParticipants.add(participantIdentifier);
       if (hasSun) sundayParticipants.add(participantIdentifier);
     });
+
+    // Sort participants by: 1st Region (asc) -> 2nd Section (asc) -> 3rd Name (Korean asc)
+    const sortParticipants = (list: ParticipantInfo[]) => {
+      return [...list].sort((a, b) => {
+        if (a.regionNum !== b.regionNum) return a.regionNum - b.regionNum;
+        if (a.sectionNum !== b.sectionNum) return a.sectionNum - b.sectionNum;
+        return a.name.localeCompare(b.name, 'ko-KR');
+      });
+    };
 
     // 5. Construct Telegram HTML Message
     const now = new Date();
@@ -206,9 +270,9 @@ export async function POST(
 
     wednesdaySlots.forEach((slot: string) => {
       const timeOnly = slot.replace(/^수\s*/, '');
-      const members = slotMap[slot] || [];
+      const members = sortParticipants(slotMap[slot] || []);
       const count = members.length;
-      const listText = count > 0 ? members.map(escapeHtml).join(', ') : '-';
+      const listText = count > 0 ? members.map((m) => escapeHtml(m.displayName)).join(', ') : '-';
       msg += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
     });
 
@@ -221,9 +285,9 @@ export async function POST(
 
     sundaySlots.forEach((slot: string) => {
       const timeOnly = slot.replace(/^일\s*/, '');
-      const members = slotMap[slot] || [];
+      const members = sortParticipants(slotMap[slot] || []);
       const count = members.length;
-      const listText = count > 0 ? members.map(escapeHtml).join(', ') : '-';
+      const listText = count > 0 ? members.map((m) => escapeHtml(m.displayName)).join(', ') : '-';
       msg += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
     });
 
