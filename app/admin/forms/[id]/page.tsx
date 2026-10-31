@@ -63,6 +63,7 @@ interface AnalyticsData {
     average_score?: number;
     score_distribution?: Array<{ score: number; count: number; percentage: number }>;
     reasons?: Array<{ user_name: string; score: number; reason: string; submitted_at: string }>;
+    other_answers?: Array<{ user_name: string; text: string; submitted_at: string }>;
     recent_text_answers?: Array<{ user_name: string; username?: string | null; text: string; submitted_at: string }>;
   }>;
 }
@@ -1069,6 +1070,21 @@ export default function AdminFormDetailPage() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Render other_answers for choice questions */}
+                  {qa.other_answers && qa.other_answers.length > 0 && (
+                    <div className="space-y-2 pt-2 border-t border-slate-100">
+                      <h4 className="text-xs font-bold text-slate-800">기타 직접입력 답변 목록 ({qa.other_answers.length}건)</h4>
+                      <div className="space-y-1.5 max-h-40 overflow-y-auto">
+                        {qa.other_answers.map((oa, oaIdx) => (
+                          <div key={oaIdx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                            <span className="font-semibold text-slate-800">{oa.text}</span>
+                            <span className="text-[11px] text-slate-400 font-mono">({oa.user_name})</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
 

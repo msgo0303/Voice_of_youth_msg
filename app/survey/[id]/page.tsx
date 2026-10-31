@@ -28,6 +28,7 @@ export default function UserSurveyPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [satisfactionReasons, setSatisfactionReasons] = useState<Record<string, string>>({});
+  const [otherTexts, setOtherTexts] = useState<Record<string, string>>({});
   const [isEditMode, setIsEditMode] = useState(false);
 
   // UI Flow states
@@ -76,8 +77,19 @@ export default function UserSurveyPage() {
               }
             });
 
+            const existingOtherTextsMap: Record<string, string> = {};
+            respJson.response.response_answers.forEach((ans: any) => {
+              const valStr = ans.answer_value || '';
+              const tokens = valStr.split(', ');
+              const otherToken = tokens.find((t: string) => t === '기타' || t.startsWith('기타: '));
+              if (otherToken && otherToken.startsWith('기타: ')) {
+                existingOtherTextsMap[ans.question_id] = otherToken.slice(4).trim();
+              }
+            });
+
             setAnswers(existingAnswersMap);
             setSatisfactionReasons(existingReasonsMap);
+            setOtherTexts(existingOtherTextsMap);
             setIsEditMode(true);
           } else {
             setValidationError(respJson.error || '수정할 응답 정보를 불러올 수 없습니다.');
@@ -146,6 +158,16 @@ export default function UserSurveyPage() {
         const reason = satisfactionReasons[q.id];
         if (!reason || !reason.trim()) {
           missing.push(`${q.title} (사유 서술 필수)`);
+        }
+      }
+    }
+
+    for (const q of questions) {
+      const val = answers[q.id];
+      if (val) {
+        const tokens = val.split(', ');
+        if (tokens.some((t: string) => t.trim() === '기타')) {
+          missing.push(`${q.title} ('기타' 항목 세부 내용 작성 필수)`);
         }
       }
     }
@@ -342,36 +364,119 @@ export default function UserSurveyPage() {
 
                 {q.type === 'SINGLE_CHOICE' && (
                   <div className="space-y-2 pt-1">
-                    {opts.map((opt, oIdx) => (
-                      <label key={oIdx} className="flex items-center space-x-3 p-2.5 bg-slate-50 hover:bg-blue-50/50 rounded-xl border border-slate-200 cursor-pointer transition">
-                        <input
-                          type="radio"
-                          name={`q_${q.id}`}
-                          checked={answers[q.id] === opt}
-                          onChange={() => handleSingleAnswerChange(q.id, opt)}
-                          className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                        />
-                        <span className="text-xs font-semibold text-slate-800">{opt}</span>
-                      </label>
-                    ))}
+                    {opts.map((opt, oIdx) => {
+                      const isOther = opt.trim() === '기타';
+                      const currentVal = answers[q.id] || '';
+                      const isChecked = isOther
+                        ? (currentVal === '기타' || currentVal.startsWith('기타: '))
+                        : (currentVal === opt);
+
+                      return (
+                        <div key={oIdx} className="space-y-2">
+                          <label className={`flex items-center space-x-3 p-2.5 rounded-xl border transition cursor-pointer ${
+                            isChecked ? 'bg-blue-50/70 border-blue-400 shadow-xs' : 'bg-slate-50 hover:bg-blue-50/30 border-slate-200'
+                          }`}>
+                            <input
+                              type="radio"
+                              name={`q_${q.id}`}
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isOther) {
+                                  const text = otherTexts[q.id] || '';
+                                  handleSingleAnswerChange(q.id, text ? `기타: ${text}` : '기타');
+                                } else {
+                                  handleSingleAnswerChange(q.id, opt);
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                            <span className="text-xs font-semibold text-slate-800">{opt}</span>
+                          </label>
+
+                          {isOther && isChecked && (
+                            <div className="pl-7 pr-1">
+                              <input
+                                type="text"
+                                placeholder="기타 내용을 직접 입력해 주세요"
+                                value={otherTexts[q.id] || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setOtherTexts((prev) => ({ ...prev, [q.id]: val }));
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [q.id]: val ? `기타: ${val}` : '기타'
+                                  }));
+                                  setValidationError(null);
+                                }}
+                                className="w-full text-xs p-2.5 bg-white border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                                autoFocus
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
                 {q.type === 'MULTIPLE_CHOICE' && (
                   <div className="space-y-2 pt-1">
                     {opts.map((opt, oIdx) => {
-                      const selectedList = (answers[q.id] || '').split(', ');
-                      const isChecked = selectedList.includes(opt);
+                      const isOther = opt.trim() === '기타';
+                      const selectedList = (answers[q.id] || '').split(', ').filter(Boolean);
+                      const isChecked = isOther
+                        ? selectedList.some((o) => o === '기타' || o.startsWith('기타: '))
+                        : selectedList.includes(opt);
+
                       return (
-                        <label key={oIdx} className="flex items-center space-x-3 p-2.5 bg-slate-50 hover:bg-blue-50/50 rounded-xl border border-slate-200 cursor-pointer transition">
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => handleMultipleAnswerChange(q.id, opt)}
-                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
-                          />
-                          <span className="text-xs font-semibold text-slate-800">{opt}</span>
-                        </label>
+                        <div key={oIdx} className="space-y-2">
+                          <label className={`flex items-center space-x-3 p-2.5 rounded-xl border transition cursor-pointer ${
+                            isChecked ? 'bg-blue-50/70 border-blue-400 shadow-xs' : 'bg-slate-50 hover:bg-blue-50/30 border-slate-200'
+                          }`}>
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => {
+                                if (isOther) {
+                                  if (isChecked) {
+                                    const next = selectedList.filter((o) => o !== '기타' && !o.startsWith('기타: '));
+                                    setAnswers((prev) => ({ ...prev, [q.id]: next.join(', ') }));
+                                  } else {
+                                    const text = otherTexts[q.id] || '';
+                                    const otherToken = text ? `기타: ${text}` : '기타';
+                                    const next = [...selectedList, otherToken];
+                                    setAnswers((prev) => ({ ...prev, [q.id]: next.join(', ') }));
+                                  }
+                                } else {
+                                  handleMultipleAnswerChange(q.id, opt);
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 cursor-pointer"
+                            />
+                            <span className="text-xs font-semibold text-slate-800">{opt}</span>
+                          </label>
+
+                          {isOther && isChecked && (
+                            <div className="pl-7 pr-1">
+                              <input
+                                type="text"
+                                placeholder="기타 내용을 직접 입력해 주세요"
+                                value={otherTexts[q.id] || ''}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setOtherTexts((prev) => ({ ...prev, [q.id]: val }));
+                                  const currentItems = (answers[q.id] || '').split(', ').filter(Boolean);
+                                  const filtered = currentItems.filter((o) => o !== '기타' && !o.startsWith('기타: '));
+                                  filtered.push(val ? `기타: ${val}` : '기타');
+                                  setAnswers((prev) => ({ ...prev, [q.id]: filtered.join(', ') }));
+                                  setValidationError(null);
+                                }}
+                                className="w-full text-xs p-2.5 bg-white border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                                autoFocus
+                              />
+                            </div>
+                          )}
+                        </div>
                       );
                     })}
                   </div>

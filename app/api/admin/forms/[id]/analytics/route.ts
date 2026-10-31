@@ -102,23 +102,38 @@ export async function GET(
       if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'DROPDOWN'].includes(q.type)) {
         const optionCounts: Record<string, number> = {};
         optionsList.forEach((opt: string) => { optionCounts[opt] = 0; });
+        const otherAnswersList: Array<{ user_name: string; text: string; submitted_at: string }> = [];
 
         answersForQuestion.forEach((ans) => {
           if (q.type === 'MULTIPLE_CHOICE') {
-            const selected = ans.answer_value.split(', ');
+            const selected = ans.answer_value.split(', ').filter(Boolean);
             selected.forEach((opt) => {
               if (optionCounts[opt] !== undefined) {
                 optionCounts[opt] += 1;
+              } else if (opt.startsWith('기타: ') && optionCounts['기타'] !== undefined) {
+                optionCounts['기타'] += 1;
+                otherAnswersList.push({
+                  user_name: ans.user_name,
+                  text: opt.slice(4).trim(),
+                  submitted_at: ans.submitted_at
+                });
               } else {
-                optionCounts[opt] = 1;
+                optionCounts[opt] = (optionCounts[opt] || 0) + 1;
               }
             });
           } else {
             const opt = ans.answer_value;
             if (optionCounts[opt] !== undefined) {
               optionCounts[opt] += 1;
+            } else if (opt.startsWith('기타: ') && optionCounts['기타'] !== undefined) {
+              optionCounts['기타'] += 1;
+              otherAnswersList.push({
+                user_name: ans.user_name,
+                text: opt.slice(4).trim(),
+                submitted_at: ans.submitted_at
+              });
             } else {
-              optionCounts[opt] = 1;
+              optionCounts[opt] = (optionCounts[opt] || 0) + 1;
             }
           }
         });
@@ -134,7 +149,8 @@ export async function GET(
           title: q.title,
           type: q.type,
           answered_count: answeredCount,
-          option_breakdown: optionBreakdown
+          option_breakdown: optionBreakdown,
+          other_answers: otherAnswersList
         };
       }
 

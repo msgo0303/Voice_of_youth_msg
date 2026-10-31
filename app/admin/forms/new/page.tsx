@@ -203,6 +203,20 @@ export default function NewFormBuilderPage() {
     updateQuestion(qId, { options: [...q.options, `선택지 ${q.options.length + 1}`] });
   };
 
+  const handleAddOtherOption = (qId: string) => {
+    const q = questions.find(item => item.id === qId);
+    if (!q) return;
+    if (q.options.some((opt: string) => opt.trim() === '기타')) {
+      alert("이미 '기타' 선택지가 포함되어 있습니다.");
+      return;
+    }
+    if (q.options.length >= 20) {
+      alert('옵션은 최대 20개까지 추가 가능합니다.');
+      return;
+    }
+    updateQuestion(qId, { options: [...q.options, '기타'] });
+  };
+
   const handleUpdateOption = (qId: string, optIdx: number, val: string) => {
     const q = questions.find(item => item.id === qId);
     if (!q) return;
@@ -543,13 +557,24 @@ export default function NewFormBuilderPage() {
                       </div>
                     ))}
                   </div>
-                  <button
-                    onClick={() => handleAddOption(q.id)}
-                    className="text-xs text-blue-600 font-bold hover:underline flex items-center space-x-1 pt-1"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>선택지 추가</span>
-                  </button>
+                  <div className="flex items-center space-x-3 pt-1">
+                    <button
+                      onClick={() => handleAddOption(q.id)}
+                      className="text-xs text-blue-600 font-bold hover:underline flex items-center space-x-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>선택지 추가</span>
+                    </button>
+                    {(q.type === 'SINGLE_CHOICE' || q.type === 'MULTIPLE_CHOICE') && !q.options.some((opt: string) => opt.trim() === '기타') && (
+                      <button
+                        onClick={() => handleAddOtherOption(q.id)}
+                        className="text-xs text-slate-500 font-bold hover:text-blue-600 hover:underline flex items-center space-x-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>'기타' 추가</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
