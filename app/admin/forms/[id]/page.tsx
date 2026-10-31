@@ -7,6 +7,7 @@ import { useTelegramAuth } from '@/components/TelegramAuthProvider';
 import { Form, Question, FormStatus } from '@/types/database';
 import { getTelegramMiniAppUrl } from '@/lib/telegramLink';
 import SurveyQRCode from '@/components/SurveyQRCode';
+import ReportDownloadModal from '@/components/ReportDownloadModal';
 import {
   ArrowLeft,
   Calendar,
@@ -102,6 +103,7 @@ export default function AdminFormDetailPage() {
   const [duplicating, setDuplicating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sendingSummary, setSendingSummary] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [deletingResponseId, setDeletingResponseId] = useState<string | null>(null);
 
   // Topic binding state
@@ -996,6 +998,15 @@ export default function AdminFormDetailPage() {
 
             <div className="flex items-center space-x-2">
               <button
+                onClick={() => setIsReportModalOpen(true)}
+                disabled={!analytics || analytics.summary.total_responses === 0}
+                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow-md active:scale-95 transition disabled:opacity-50"
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>대시보드 리포트 다운로드</span>
+              </button>
+
+              <button
                 onClick={handleDownloadCsv}
                 disabled={!analytics || analytics.summary.total_responses === 0}
                 className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow-sm transition disabled:opacity-50"
@@ -1149,6 +1160,18 @@ export default function AdminFormDetailPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Report Download Modal with Question Selector & Image/PDF Export */}
+      {form && analytics && (
+        <ReportDownloadModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          formTitle={form.title}
+          formDescription={form.description}
+          analytics={analytics}
+          totalResponses={analytics.summary.total_responses}
+        />
       )}
     </div>
   );
