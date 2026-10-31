@@ -62,6 +62,7 @@ export default function ReportDownloadModal({
   const allQuestionIds = analytics.question_analytics.map((q) => q.question_id);
   const [selectedQIds, setSelectedQIds] = useState<string[]>(allQuestionIds);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [reportSortBy, setReportSortBy] = useState<'most_answers' | 'question_order'>('most_answers');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
   if (!isOpen) return null;
@@ -172,6 +173,27 @@ export default function ReportDownloadModal({
                 >
                   전체 해제
                 </button>
+                <span className="text-slate-300 text-xs">|</span>
+                <div className="flex items-center bg-slate-200/80 p-0.5 rounded-lg text-[10px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setReportSortBy('most_answers')}
+                    className={`px-2 py-0.5 rounded transition ${
+                      reportSortBy === 'most_answers' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    답변 많은 순
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setReportSortBy('question_order')}
+                    className={`px-2 py-0.5 rounded transition ${
+                      reportSortBy === 'question_order' ? 'bg-white text-blue-600 shadow-xs' : 'text-slate-600'
+                    }`}
+                  >
+                    질문 번호 순
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -278,7 +300,14 @@ export default function ReportDownloadModal({
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {selectedQuestions.map((qa, qIdx) => {
+                  {[...selectedQuestions]
+                    .sort((a, b) => {
+                      if (reportSortBy === 'most_answers') {
+                        return b.answered_count - a.answered_count;
+                      }
+                      return 0;
+                    })
+                    .map((qa, qIdx) => {
                     // 1위 항목 계산 (객관식)
                     let topOptionName = '';
                     if (qa.option_breakdown && qa.option_breakdown.length > 0) {

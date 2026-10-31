@@ -104,6 +104,7 @@ export default function AdminFormDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [sendingSummary, setSendingSummary] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [analyticsSortBy, setAnalyticsSortBy] = useState<'most_answers' | 'question_order'>('most_answers');
   const [deletingResponseId, setDeletingResponseId] = useState<string | null>(null);
 
   // Topic binding state
@@ -997,6 +998,29 @@ export default function AdminFormDetailPage() {
             </div>
 
             <div className="flex items-center space-x-2">
+              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200 text-xs font-bold mr-1">
+                <button
+                  onClick={() => setAnalyticsSortBy('most_answers')}
+                  className={`px-2.5 py-1.5 rounded-lg transition ${
+                    analyticsSortBy === 'most_answers'
+                      ? 'bg-white text-blue-600 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  답변 많은 순
+                </button>
+                <button
+                  onClick={() => setAnalyticsSortBy('question_order')}
+                  className={`px-2.5 py-1.5 rounded-lg transition ${
+                    analyticsSortBy === 'question_order'
+                      ? 'bg-white text-blue-600 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  질문 번호 순
+                </button>
+              </div>
+
               <button
                 onClick={() => setIsReportModalOpen(true)}
                 disabled={!analytics || analytics.summary.total_responses === 0}
@@ -1034,7 +1058,14 @@ export default function AdminFormDetailPage() {
             </div>
           ) : (
             <div className="space-y-6">
-              {analytics.question_analytics.map((qa, qIdx) => (
+              {[...analytics.question_analytics]
+                .sort((a, b) => {
+                  if (analyticsSortBy === 'most_answers') {
+                    return b.answered_count - a.answered_count;
+                  }
+                  return 0; // 원래 질문 순서 유지
+                })
+                .map((qa, qIdx) => (
                 <div key={qa.question_id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div className="space-y-0.5">

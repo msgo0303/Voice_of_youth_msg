@@ -203,11 +203,14 @@ export async function GET(
           });
         });
 
-        const optionBreakdown = Object.entries(optionCounts).map(([option, count]) => ({
-          option,
-          count,
-          percentage: answeredCount > 0 ? Math.round((count / answeredCount) * 100) : 0
-        }));
+        // 답변(득표수) 많은 순으로 내림차순 정렬
+        const optionBreakdown = Object.entries(optionCounts)
+          .map(([option, count]) => ({
+            option,
+            count,
+            percentage: answeredCount > 0 ? Math.round((count / answeredCount) * 100) : 0
+          }))
+          .sort((a, b) => b.count - a.count);
 
         return {
           question_id: q.id,
