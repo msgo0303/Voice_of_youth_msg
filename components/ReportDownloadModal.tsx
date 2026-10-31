@@ -48,6 +48,19 @@ interface ReportDownloadModalProps {
   totalResponses: number;
 }
 
+// Data URL을 바이너리 Blob으로 변환하여 PC/모바일 다운로드 브라우저 호환성을 보장하는 유틸리티
+function dataUrlToBlob(dataUrl: string): Blob {
+  const parts = dataUrl.split(';base64,');
+  const contentType = parts[0].split(':')[1];
+  const raw = window.atob(parts[1]);
+  const rawLength = raw.length;
+  const uInt8Array = new Uint8Array(rawLength);
+  for (let i = 0; i < rawLength; ++i) {
+    uInt8Array[i] = raw.charCodeAt(i);
+  }
+  return new Blob([uInt8Array], { type: contentType });
+}
+
 export default function ReportDownloadModal({
   isOpen,
   onClose,
@@ -62,6 +75,7 @@ export default function ReportDownloadModal({
   const allQuestionIds = analytics.question_analytics.map((q) => q.question_id);
   const [selectedQIds, setSelectedQIds] = useState<string[]>(allQuestionIds);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [reportSortBy, setReportSortBy] = useState<'most_answers' | 'question_order'>('most_answers');
   const [downloadSuccess, setDownloadSuccess] = useState(false);
 
@@ -81,14 +95,14 @@ export default function ReportDownloadModal({
     selectedQIds.includes(q.question_id)
   );
 
-  // 고화질 이미지(PNG) 다운로드 실행
+  // 고화질 이미지(PNG) 다운로드 실행 (Blob Object URL 및 DOM 앵커 클릭으로 PC 완벽 지원)
   const handleDownloadImage = async () => {
     if (!reportRef.current || selectedQuestions.length === 0) return;
     setIsCapturing(true);
 
     try {
-      // 폰트 및 스타일 렌더링 대기
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      // 스크롤 영역 전체 펼침 및 폰트/스타일 렌더링 대기
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       const dataUrl = await toPng(reportRef.current, {
         cacheBust: true,
@@ -96,13 +110,26 @@ export default function ReportDownloadModal({
         backgroundColor: '#ffffff'
       });
 
+      const blob = dataUrlToBlob(dataUrl);
+      const objectUrl = URL.createObjectURL(blob);
+
       const safeTitle = formTitle.replace(/[^a-zA-Z0-9가-힣]/g, '_');
       const filename = `FormGram_${safeTitle}_통계리포트.png`;
 
       const link = document.createElement('a');
+      link.style.display = 'none';
+      link.href = objectUrl;
       link.download = filename;
-      link.href = dataUrl;
+      document.body.appendChild(link);
       link.click();
+
+      // 파일 다운로드 시작 후 메모리 해제
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link);
+        }
+        URL.revokeObjectURL(objectUrl);
+      }, 5000);
 
       setDownloadSuccess(true);
       setTimeout(() => setDownloadSuccess(false), 3000);
@@ -114,10 +141,130 @@ export default function ReportDownloadModal({
     }
   };
 
-  // 인쇄 및 PDF 저장
+  // 인쇄 및 PDF 저장 (독립된 히든 iframe을 사용하여 미니앱 배경 중복을 완전히 방지)
   const handlePrint = () => {
     if (!reportRef.current || selectedQuestions.length === 0) return;
-    window.print();
+    setIsPrinting(true);
+
+    try {
+      // 기존에 남아있을 수 있는 인쇄용 iframe 정리
+      const existingIframe = document.getElementById('report-print-iframe');
+      if (existingIframe) {
+        existingIframe.remove();
+      }
+
+      // 완전히 격리된 히든 iframe 생성 (미니앱 본문 화면 배제)
+      const iframe = document.createElement('iframe');
+      iframe.id = 'report-print-iframe';
+      iframe.style.position = 'fixed';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '1000px';
+      iframe.style.height = '1000px';
+      iframe.style.border = '0';
+      iframe.style.opacity = '0';
+      iframe.style.pointerEvents = 'none';
+      document.body.appendChild(iframe);
+
+      const iframeDoc = iframe.contentWindow?.document;
+      if (!iframeDoc) {
+        alert('인쇄 프레임을 생성할 수 없습니다.');
+        setIsPrinting(false);
+        return;
+      }
+
+      // 현재 페이지의 스타일시트 및 CSS 규칙 복사
+      const styleSheets = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+        .map((el) => el.outerHTML)
+        .join('\n');
+
+      const safeTitle = formTitle.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+      const reportHtml = reportRef.current.innerHTML;
+
+      iframeDoc.open();
+      iframeDoc.write(`
+        <!DOCTYPE html>
+        <html lang="ko">
+        <head>
+          <meta charset="utf-8">
+          <title>FormGram_${safeTitle}_통계리포트</title>
+          ${styleSheets}
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 15mm 12mm;
+            }
+            html, body {
+              background: #ffffff !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            .print-wrapper {
+              width: 100% !important;
+              max-width: 780px !important;
+              margin: 0 auto !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+            }
+            /* 질문 카드가 중간에 잘리지 않고 통째로 다음 페이지로 이동 */
+            .question-print-card {
+              break-inside: avoid !important;
+              page-break-inside: avoid !important;
+              display: block !important;
+              margin-bottom: 24px !important;
+              border: 1px solid #e2e8f0 !important;
+              background-color: #f8fafc !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            /* 헤더는 첫 페이지 맨 위에만 위치하고 다음 페이지에 반복되지 않음 */
+            .report-header-print {
+              break-after: avoid !important;
+              page-break-after: avoid !important;
+            }
+            /* 인쇄 시 스크롤바 감추고 전체 내용 펼침 */
+            * {
+              overflow: visible !important;
+              max-height: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-wrapper bg-white p-2 space-y-6 text-slate-900">
+            ${reportHtml}
+          </div>
+        </body>
+        </html>
+      `);
+      iframeDoc.close();
+
+      // iframe 렌더링 및 스타일 파싱 완료 대기 후 인쇄 대화상자 호출
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch (printErr) {
+          console.error('Print execution failed:', printErr);
+          alert('인쇄 창을 여는 중 오류가 발생했습니다.');
+        } finally {
+          setIsPrinting(false);
+          // 대화상자 종료 후 40초 뒤 iframe 정리
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 40000);
+        }
+      }, 500);
+    } catch (err) {
+      console.error('Failed to prepare print iframe:', err);
+      alert('인쇄 준비 중 오류가 발생했습니다.');
+      setIsPrinting(false);
+    }
   };
 
   const reportDateStr = formatKstDateTime();
@@ -502,7 +649,7 @@ export default function ReportDownloadModal({
                                   <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
                                   <span>직접 작성된 '기타' 의견 ({qa.other_answers.length}건)</span>
                                 </h4>
-                                <div className="space-y-1 max-h-36 overflow-y-auto">
+                                <div className={`space-y-1 ${isCapturing ? 'max-h-none overflow-visible' : 'max-h-36 overflow-y-auto'}`}>
                                   {qa.other_answers.map((oa, oaIdx) => (
                                     <div
                                       key={oaIdx}
@@ -540,7 +687,7 @@ export default function ReportDownloadModal({
                             {qa.reasons && qa.reasons.length > 0 && (
                               <div className="space-y-2 pt-2 border-t border-slate-200/70">
                                 <h4 className="text-xs font-bold text-indigo-950">작성된 평가 사유 ({qa.reasons.length}건)</h4>
-                                <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                                <div className={`space-y-1.5 ${isCapturing ? 'max-h-none overflow-visible' : 'max-h-36 overflow-y-auto'}`}>
                                   {qa.reasons.map((r, rIdx) => (
                                     <div
                                       key={rIdx}
@@ -567,7 +714,7 @@ export default function ReportDownloadModal({
                             {qa.recent_text_answers.length === 0 ? (
                               <p className="text-xs text-slate-400 italic">등록된 응답이 없습니다.</p>
                             ) : (
-                              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                              <div className={`space-y-1.5 ${isCapturing ? 'max-h-none overflow-visible' : 'max-h-48 overflow-y-auto'}`}>
                                 {qa.recent_text_answers.map((ta, tIdx) => (
                                   <div
                                     key={tIdx}
@@ -611,16 +758,16 @@ export default function ReportDownloadModal({
           <div className="flex items-center space-x-2.5">
             <button
               onClick={handlePrint}
-              disabled={selectedQuestions.length === 0 || isCapturing}
+              disabled={selectedQuestions.length === 0 || isCapturing || isPrinting}
               className="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-xl flex items-center space-x-1.5 transition disabled:opacity-50"
             >
               <Printer className="w-4 h-4 text-slate-700" />
-              <span>PDF / 인쇄</span>
+              <span>{isPrinting ? 'PDF 준비 중...' : 'PDF / 인쇄'}</span>
             </button>
 
             <button
               onClick={handleDownloadImage}
-              disabled={selectedQuestions.length === 0 || isCapturing}
+              disabled={selectedQuestions.length === 0 || isCapturing || isPrinting}
               className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl flex items-center space-x-1.5 shadow-md active:scale-95 transition disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
