@@ -182,8 +182,12 @@ export async function POST(
       return NextResponse.json({ error: `답변 상세 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
-    // 6.5. '지역', '구역', '이름'이 같은 이전 제출 건이 있는 경우 최신 제출 건만 유지하도록 정리
-    await deduplicateFormResponsesByApplicant(formId);
+    const isZoomSurvey = isZoomScheduleSurvey(form.title, form.description);
+
+    // 6.5. 줌 사전 신청서 설문인 경우에 한해 '지역', '구역', '이름' 중복 시 최신 제출 건만 유지
+    if (isZoomSurvey) {
+      await deduplicateFormResponsesByApplicant(formId);
+    }
 
     // 7. Send Telegram Notification to target chat & topic
     let telegramMessageId: number | null = null;
@@ -250,7 +254,7 @@ export async function POST(
       }
 
       // 줌 사전 신청서 설문인 경우, [줌 사전 신청 현황 명단]도 함께 발송
-      if (isZoomScheduleSurvey(form.title, questions)) {
+      if (isZoomSurvey) {
         await sendZoomScheduleSummaryToTelegram(formId);
       }
     } catch (tgErr) {
@@ -402,8 +406,12 @@ export async function PUT(
       return NextResponse.json({ error: `수정된 답변 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
-    // 6.5. '지역', '구역', '이름'이 같은 이전 제출 건이 있는 경우 최신 제출 건만 유지하도록 정리
-    await deduplicateFormResponsesByApplicant(formId);
+    const isZoomSurvey = isZoomScheduleSurvey(form.title, form.description);
+
+    // 6.5. 줌 사전 신청서 설문인 경우에 한해 '지역', '구역', '이름' 중복 시 최신 제출 건만 유지
+    if (isZoomSurvey) {
+      await deduplicateFormResponsesByApplicant(formId);
+    }
 
     // 7. Send Telegram Notification about Response Edit
     try {
@@ -434,7 +442,7 @@ export async function PUT(
       });
 
       // 줌 사전 신청서 설문인 경우, [줌 사전 신청 현황 명단]도 함께 발송
-      if (isZoomScheduleSurvey(form.title, questions)) {
+      if (isZoomSurvey) {
         await sendZoomScheduleSummaryToTelegram(formId);
       }
     } catch (tgErr) {

@@ -24,20 +24,24 @@ export interface ScheduleSummaryResult {
 }
 
 /**
- * 설문이 '줌 사전 신청서' (또는 요일/시간대별 일정 설문)인지 판별
+ * 설문이 '줌 사전 신청서' 전용 설문인지 엄격히 판별 (방안 1: 제목 완전 일치 또는 전용 태그)
+ * - 설문 제목이 공백 무관 '줌사전신청서'와 일치하는 경우
+ * - 또는 설문 설명(description)이나 제목에 '#줌사전신청' 또는 '#줌명단발송' 태그가 명시된 경우
  */
-export function isZoomScheduleSurvey(formTitle?: string | null, questions?: any[]): boolean {
-  if (formTitle && formTitle.includes('줌')) {
+export function isZoomScheduleSurvey(formTitle?: string | null, formDescription?: string | null): boolean {
+  const normTitle = (formTitle || '').replace(/\s+/g, '');
+  const desc = formDescription || '';
+
+  // 1. 설문 제목 완전 일치 ("줌 사전 신청서" 또는 "줌사전신청서")
+  if (normTitle === '줌사전신청서') {
     return true;
   }
-  if (Array.isArray(questions)) {
-    return questions.some((q: any) => {
-      const titleMatches = /일시|시간|일정/.test(q.title || '');
-      const optionsMatch =
-        Array.isArray(q.options) && q.options.some((opt: string) => /수\s*\d|일\s*\d/.test(opt));
-      return (q.type === 'MULTIPLE_CHOICE' || q.type === 'CHECKBOX') && (titleMatches || optionsMatch);
-    });
+
+  // 2. 전용 태그 검사 (#줌사전신청, #줌명단발송)
+  if (/#줌사전신청|#줌명단발송/.test(desc) || /#줌사전신청|#줌명단발송/.test(normTitle)) {
+    return true;
   }
+
   return false;
 }
 
@@ -170,12 +174,17 @@ export async function sendZoomScheduleSummaryToTelegram(formId: string): Promise
   // 1. Fetch Form metadata
   const { data: form, error: formErr } = await supabase
     .from('forms')
-    .select('id, title, response_chat_id, response_topic_id')
+    .select('id, title, description, response_chat_id, response_topic_id')
     .eq('id', formId)
     .single();
 
   if (formErr || !form) {
     return { ok: false, error: '설문을 찾을 수 없습니다.', status: 404 };
+  }
+
+  // 1.5. 엄격 검사: 줌 사전 신청서 전용 설문인지 검증
+  if (!isZoomScheduleSurvey(form.title, form.description)) {
+    return { ok: false, error: '줌 사전 신청서 전용 설문이 아닙니다.', status: 400 };
   }
 
   // 2. Fetch Questions to find the schedule question

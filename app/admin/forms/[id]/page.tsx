@@ -408,12 +408,9 @@ export default function AdminFormDetailPage() {
   };
 
   const isScheduleSurvey =
-    (form?.title && form.title.includes('줌')) ||
-    questions.some((q) => {
-      const titleMatches = /일시|시간|일정/.test(q.title);
-      const optionsMatch = Array.isArray(q.options) && q.options.some((opt: string) => /수\s*\d|일\s*\d/.test(opt));
-      return (q.type === 'MULTIPLE_CHOICE' || (q.type as string) === 'CHECKBOX') && (titleMatches || optionsMatch);
-    });
+    Boolean(form?.title && form.title.replace(/\s+/g, '') === '줌사전신청서') ||
+    Boolean(form?.description && /#줌사전신청|#줌명단발송/.test(form.description)) ||
+    Boolean(form?.title && /#줌사전신청|#줌명단발송/.test(form.title));
 
   const handleSendScheduleSummary = async () => {
     if (sendingSummary) return;

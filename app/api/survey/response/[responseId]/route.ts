@@ -110,6 +110,7 @@ export async function PUT(
         forms:form_id (
           id,
           title,
+          description,
           status,
           response_chat_id,
           response_topic_id
@@ -209,8 +210,12 @@ export async function PUT(
       return NextResponse.json({ error: `수정된 답변 저장 실패: ${ansInsertErr.message}` }, { status: 500 });
     }
 
-    // 4.5. Clean up duplicate submissions with the same (지역, 구역, 이름)
-    await deduplicateFormResponsesByApplicant(form.id);
+    const isZoomSurvey = isZoomScheduleSurvey(form.title, form.description);
+
+    // 4.5. 줌 사전 신청서 설문인 경우에 한해 '지역', '구역', '이름' 중복 시 최신 건만 유지
+    if (isZoomSurvey) {
+      await deduplicateFormResponsesByApplicant(form.id);
+    }
 
     // 5. Send Telegram Notification about Response Edit
     try {
@@ -241,7 +246,7 @@ export async function PUT(
       });
 
       // 줌 사전 신청서인 경우 최신 현황 명단도 함께 발송
-      if (isZoomScheduleSurvey(form.title, questions)) {
+      if (isZoomSurvey) {
         await sendZoomScheduleSummaryToTelegram(form.id);
       }
     } catch (tgErr) {
