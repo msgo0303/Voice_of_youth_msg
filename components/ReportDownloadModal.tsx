@@ -129,33 +129,71 @@ export default function ReportDownloadModal({
         @media print {
           @page {
             size: A4 portrait;
-            margin: 12mm 15mm;
+            margin: 15mm 12mm;
           }
-          body {
-            visibility: hidden !important;
+          html, body {
             background: #ffffff !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          /* Hide everything except report-capture-area */
-          .fixed.inset-0,
-          .fixed.inset-0 > div,
+          /* Hide non-printable modal controls */
+          .modal-no-print,
           header,
           nav,
-          footer {
-            visibility: hidden !important;
-            background: transparent !important;
+          footer,
+          aside {
+            display: none !important;
           }
-          #report-capture-area,
-          #report-capture-area * {
-            visibility: visible !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+          /* Reset modal wrappers to static document flow */
+          .modal-backdrop-print {
+            position: static !important;
+            display: block !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+          }
+          .modal-content-print {
+            position: static !important;
+            display: block !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+          }
+          .modal-body-print {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            max-height: none !important;
+            height: auto !important;
+            display: block !important;
+          }
+          .modal-canvas-wrapper-print {
+            border: none !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+            display: block !important;
           }
           #report-capture-area {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: static !important;
+            display: block !important;
             width: 100% !important;
             max-width: 100% !important;
             padding: 0 !important;
@@ -163,18 +201,33 @@ export default function ReportDownloadModal({
             border: none !important;
             box-shadow: none !important;
             background: #ffffff !important;
+            overflow: visible !important;
           }
-          .break-inside-avoid {
+          /* 질문 카드가 중간에 잘리지 않고 통째로 다음 페이지로 넘어가도록 강제 */
+          .question-print-card {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
+            display: block !important;
+            margin-bottom: 24px !important;
+            border: 1px solid #e2e8f0 !important;
+            background-color: #f8fafc !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* 헤더는 첫 페이지 맨 위에만 위치하고 다음 페이지에 반복되지 않음 */
+          .report-header-print {
+            position: static !important;
+            display: block !important;
+            page-break-after: avoid !important;
+            break-after: avoid !important;
           }
         }
       `}</style>
 
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto modal-backdrop-print">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 modal-content-print">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 shrink-0">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 shrink-0 modal-no-print">
           <div className="flex items-center space-x-2.5">
             <div className="p-2 bg-blue-600 text-white rounded-xl shadow-xs">
               <BarChart3 className="w-5 h-5" />
@@ -193,9 +246,9 @@ export default function ReportDownloadModal({
         </div>
 
         {/* Modal Body: Split view (Selector & Action) */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1">
+        <div className="p-6 space-y-6 overflow-y-auto flex-1 modal-body-print">
           {/* Question Selector Card */}
-          <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3">
+          <div className="bg-slate-50 p-4.5 rounded-2xl border border-slate-200 space-y-3 modal-no-print">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div className="flex items-center space-x-2">
                 <span className="text-xs font-bold text-slate-800">
@@ -277,7 +330,7 @@ export default function ReportDownloadModal({
           </div>
 
           {/* Report Preview Header */}
-          <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center justify-between pt-1 modal-no-print">
             <h3 className="text-xs font-extrabold text-slate-800 flex items-center space-x-1.5">
               <Sparkles className="w-4 h-4 text-blue-600" />
               <span>리포트 미리보기</span>
@@ -291,14 +344,14 @@ export default function ReportDownloadModal({
           </div>
 
           {/* Printable & Capturable Report Canvas */}
-          <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs bg-slate-100/50 p-2 sm:p-4">
+          <div className="border border-slate-200 rounded-2xl overflow-hidden shadow-xs bg-slate-100/50 p-2 sm:p-4 modal-canvas-wrapper-print">
             <div
               ref={reportRef}
               id="report-capture-area"
               className="bg-white p-6 sm:p-8 rounded-xl shadow-xs space-y-6 text-slate-900 max-w-3xl mx-auto"
             >
               {/* Report Canvas Header */}
-              <div className="border-b-2 border-slate-900/80 pb-5 space-y-3">
+              <div className="border-b-2 border-slate-900/80 pb-5 space-y-3 report-header-print">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="px-2.5 py-1 bg-blue-600 text-white rounded-lg text-xs font-black tracking-wider uppercase">
@@ -368,7 +421,7 @@ export default function ReportDownloadModal({
                     return (
                       <div
                         key={qa.question_id}
-                        className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4 break-inside-avoid"
+                        className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-4 break-inside-avoid question-print-card"
                       >
                         {/* Question Title & Meta */}
                         <div className="flex items-start justify-between gap-3 border-b border-slate-200/70 pb-3">
@@ -547,7 +600,7 @@ export default function ReportDownloadModal({
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0 modal-no-print">
           <button
             onClick={onClose}
             className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200/60 rounded-xl transition"
