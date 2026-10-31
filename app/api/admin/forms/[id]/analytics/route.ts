@@ -3,6 +3,45 @@ import { getAuthSessionFromRequest } from '@/lib/auth';
 import { getServiceSupabase } from '@/lib/supabase';
 import { decodeQuestionFromDb } from '@/lib/questionTypeMapper';
 
+// 보조 함수: 복수 선택 등 다양한 형식의 답변 문자열을 정규화된 옵션 목록으로 파싱
+function parseOptionsFromAnswerValue(rawVal: string): string[] {
+  if (!rawVal || typeof rawVal !== 'string') return [];
+  const trimmed = rawVal.trim();
+
+  // JSON 배열 형태 (예: ["선택지 1", "선택지 2"])
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed.map((s: any) => String(s).trim()).filter(Boolean);
+      }
+    } catch {}
+  }
+
+  // 쉼표 구분 문자열 (예: "선택지 1, 선택지 2")
+  return trimmed
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+// 보조 함수: 선택지 목록 중 일치하는 옵션 키 찾기 (공백 정규화 지원)
+function matchOptionKey(val: string, options: string[]): string | null {
+  if (!val) return null;
+  // 1. 정확 일치
+  if (options.includes(val)) return val;
+
+  // 2. 공백 제거 후 일치 (예: "수 07:00" vs "수07:00")
+  const normVal = val.replace(/\s+/g, '');
+  for (const opt of options) {
+    if (opt.replace(/\s+/g, '') === normVal) {
+      return opt;
+    }
+  }
+
+  return null;
+}
+
 // GET /api/admin/forms/[id]/analytics - Calculate statistical analytics for a form
 export async function GET(
   req: NextRequest,
@@ -74,7 +113,10 @@ export async function GET(
 
     // 5. Aggregate Analytics Per Question
     const questionAnalytics = questions.map((q: any) => {
-      const optionsList: string[] = Array.isArray(q.options) ? q.options : [];
+      const optionsList: string[] = Array.isArray(q.options)
+        ? q.options.filter((opt: any) => typeof opt === 'string' && !opt.startsWith('__type:'))
+        : [];
+
       const answersForQuestion: Array<{
         response_id: string;
         user_name: string;
@@ -84,13 +126,21 @@ export async function GET(
       }> = [];
 
       responses?.forEach((resp: any) => {
-        const foundAns = resp.response_answers?.find((a: any) => a.question_id === q.id);
-        if (foundAns && foundAns.answer_value) {
+        // [중요 수정] 설문 수정으로 question_id가 변경되었거나 null인 경우에도 snapshot title로 정상 매핑
+        const foundAns = resp.response_answers?.find((a: any) => {
+          if (a.question_id && a.question_id === q.id) return true;
+          const snapTitle = (a.question_snapshot?.title || '').trim();
+          const qTitle = (q.title || '').trim();
+          if (snapTitle && qTitle && snapTitle === qTitle) return true;
+          return false;
+        });
+
+        if (foundAns && foundAns.answer_value && String(foundAns.answer_value).trim()) {
           answersForQuestion.push({
             response_id: resp.id,
             user_name: resp.telegram_first_name || '이용자',
             username: resp.telegram_username || null,
-            answer_value: foundAns.answer_value,
+            answer_value: String(foundAns.answer_value).trim(),
             submitted_at: resp.submitted_at
           });
         }
@@ -101,41 +151,56 @@ export async function GET(
       // Handle Option-based Questions (SINGLE_CHOICE, MULTIPLE_CHOICE, DROPDOWN)
       if (['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'DROPDOWN'].includes(q.type)) {
         const optionCounts: Record<string, number> = {};
-        optionsList.forEach((opt: string) => { optionCounts[opt] = 0; });
+        optionsList.forEach((opt: string) => {
+          optionCounts[opt] = 0;
+        });
         const otherAnswersList: Array<{ user_name: string; text: string; submitted_at: string }> = [];
 
         answersForQuestion.forEach((ans) => {
-          if (q.type === 'MULTIPLE_CHOICE') {
-            const selected = ans.answer_value.split(', ').filter(Boolean);
-            selected.forEach((opt) => {
-              if (optionCounts[opt] !== undefined) {
-                optionCounts[opt] += 1;
-              } else if (opt.startsWith('기타: ') && optionCounts['기타'] !== undefined) {
-                optionCounts['기타'] += 1;
+          const tokens = parseOptionsFromAnswerValue(ans.answer_value);
+
+          tokens.forEach((rawToken) => {
+            // 1. '기타' 직접입력 처리 (예: "기타: 추천받음", "기타 (직접입력)", "기타")
+            const isOtherToken =
+              rawToken === '기타' ||
+              rawToken.startsWith('기타:') ||
+              rawToken.startsWith('기타: ') ||
+              rawToken.startsWith('기타(');
+
+            if (isOtherToken) {
+              const matchedOtherKey = optionsList.find((opt) => opt.trim() === '기타');
+              if (matchedOtherKey) {
+                optionCounts[matchedOtherKey] = (optionCounts[matchedOtherKey] || 0) + 1;
+              } else {
+                optionCounts['기타'] = (optionCounts['기타'] || 0) + 1;
+              }
+
+              let otherText = rawToken;
+              if (rawToken.includes(':')) {
+                otherText = rawToken.split(':')[1].trim();
+              } else if (rawToken === '기타') {
+                otherText = '기타 선택';
+              }
+
+              if (otherText) {
                 otherAnswersList.push({
                   user_name: ans.user_name,
-                  text: opt.slice(4).trim(),
+                  text: otherText,
                   submitted_at: ans.submitted_at
                 });
-              } else {
-                optionCounts[opt] = (optionCounts[opt] || 0) + 1;
               }
-            });
-          } else {
-            const opt = ans.answer_value;
-            if (optionCounts[opt] !== undefined) {
-              optionCounts[opt] += 1;
-            } else if (opt.startsWith('기타: ') && optionCounts['기타'] !== undefined) {
-              optionCounts['기타'] += 1;
-              otherAnswersList.push({
-                user_name: ans.user_name,
-                text: opt.slice(4).trim(),
-                submitted_at: ans.submitted_at
-              });
-            } else {
-              optionCounts[opt] = (optionCounts[opt] || 0) + 1;
+              return;
             }
-          }
+
+            // 2. 일반 옵션 매칭
+            const matchedKey = matchOptionKey(rawToken, optionsList);
+            if (matchedKey) {
+              optionCounts[matchedKey] = (optionCounts[matchedKey] || 0) + 1;
+            } else {
+              // 옵션 목록에 없는 맞춤/동적 답변인 경우에도 누락 없이 카운트
+              optionCounts[rawToken] = (optionCounts[rawToken] || 0) + 1;
+            }
+          });
         });
 
         const optionBreakdown = Object.entries(optionCounts).map(([option, count]) => ({
@@ -162,7 +227,7 @@ export async function GET(
         const reasonsList: Array<{ user_name: string; score: number; reason: string; submitted_at: string }> = [];
 
         answersForQuestion.forEach((ans) => {
-          const match = ans.answer_value.match(/^([1-5])점/);
+          const match = ans.answer_value.match(/([1-5])/);
           if (match) {
             const score = parseInt(match[1], 10);
             scoreCounts[score] = (scoreCounts[score] || 0) + 1;

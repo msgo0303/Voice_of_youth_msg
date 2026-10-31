@@ -55,7 +55,8 @@ export async function GET(
         is_edited,
         response_answers (
           question_id,
-          answer_value
+          answer_value,
+          question_snapshot
         )
       `)
       .eq('form_id', formId)
@@ -83,7 +84,12 @@ export async function GET(
     responses?.forEach((resp: any) => {
       const answerMap: Record<string, string> = {};
       resp.response_answers?.forEach((ans: any) => {
-        answerMap[ans.question_id] = ans.answer_value || '';
+        if (ans.question_id) {
+          answerMap[ans.question_id] = ans.answer_value || '';
+        }
+        if (ans.question_snapshot?.title) {
+          answerMap[ans.question_snapshot.title.trim()] = ans.answer_value || '';
+        }
       });
 
       const row = [
@@ -94,7 +100,7 @@ export async function GET(
         resp.telegram_user_id,
         resp.telegram_first_name || '이용자',
         resp.telegram_username ? `@${resp.telegram_username}` : '',
-        ...questions.map((q: any) => answerMap[q.id] || '')
+        ...questions.map((q: any) => answerMap[q.id] || answerMap[q.title?.trim()] || '')
       ];
 
       csvLines.push(row.map(escapeCsv).join(','));
