@@ -123,6 +123,54 @@ export default function ReportDownloadModal({
   const reportDateStr = formatKstDateTime();
 
   return (
+    <>
+      {/* Global Print Styles for Perfect Background & Bar Graph Export */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 12mm 15mm;
+          }
+          body {
+            visibility: hidden !important;
+            background: #ffffff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide everything except report-capture-area */
+          .fixed.inset-0,
+          .fixed.inset-0 > div,
+          header,
+          nav,
+          footer {
+            visibility: hidden !important;
+            background: transparent !important;
+          }
+          #report-capture-area,
+          #report-capture-area * {
+            visibility: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          #report-capture-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+          }
+          .break-inside-avoid {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
+
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
       <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         {/* Modal Header */}
@@ -369,12 +417,25 @@ export default function ReportDownloadModal({
                                       {opt.count}명 ({opt.percentage}%)
                                     </span>
                                   </div>
-                                  <div className="w-full h-3 bg-slate-200/70 rounded-full overflow-hidden">
+                                  <div
+                                    className="w-full h-3.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200"
+                                    style={{
+                                      backgroundColor: '#f1f5f9',
+                                      WebkitPrintColorAdjust: 'exact',
+                                      printColorAdjust: 'exact'
+                                    }}
+                                  >
                                     <div
                                       className={`h-full rounded-full transition-all duration-300 ${
-                                        isTop ? 'bg-blue-600' : 'bg-slate-400'
+                                        isTop ? 'bg-blue-600' : 'bg-slate-500'
                                       }`}
-                                      style={{ width: `${Math.min(100, Math.max(opt.percentage, 0))}%` }}
+                                      style={{
+                                        width: `${Math.min(100, Math.max(opt.percentage, 0))}%`,
+                                        backgroundColor: isTop ? '#2563eb' : '#64748b',
+                                        boxShadow: isTop ? 'inset 0 0 0 1000px #2563eb' : 'inset 0 0 0 1000px #64748b',
+                                        WebkitPrintColorAdjust: 'exact',
+                                        printColorAdjust: 'exact'
+                                      }}
                                     ></div>
                                   </div>
                                 </div>
@@ -516,6 +577,7 @@ export default function ReportDownloadModal({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
