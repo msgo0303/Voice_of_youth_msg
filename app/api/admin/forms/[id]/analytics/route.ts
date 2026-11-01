@@ -18,6 +18,23 @@ function parseOptionsFromAnswerValue(rawVal: string): string[] {
     } catch {}
   }
 
+  // 만약 "기타:"가 포함되어 있다면, "기타:" 이전 부분만 쉼표로 쪼개고
+  // "기타:" 이후 부분(사용자가 작성한 전체 문장)은 쉼표가 들어있어도 하나의 온전한 토큰으로 유지
+  const otherIdx = trimmed.indexOf('기타:');
+  if (otherIdx !== -1) {
+    const beforeOther = trimmed.slice(0, otherIdx).trim();
+    const otherPart = trimmed.slice(otherIdx).trim();
+
+    const regularTokens = beforeOther
+      ? beforeOther
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+
+    return [...regularTokens, otherPart];
+  }
+
   // 쉼표 구분 문자열 (예: "선택지 1, 선택지 2")
   return trimmed
     .split(',')

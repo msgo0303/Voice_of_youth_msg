@@ -115,16 +115,28 @@ export default function UserSurveyPage() {
   const handleMultipleAnswerChange = (questionId: string, option: string) => {
     setAnswers((prev) => {
       const currentRaw = prev[questionId] || '';
-      const currentList = currentRaw ? currentRaw.split(', ') : [];
-      let updated: string[];
+      const targetQ = questions.find((q) => q.id === questionId);
+      const qOpts: string[] = Array.isArray(targetQ?.options) ? (targetQ.options as string[]) : [];
 
-      if (currentList.includes(option)) {
-        updated = currentList.filter((o) => o !== option);
+      // 일반 옵션들 중 현재 선택된 목록 안전하게 추출
+      const regularOpts = qOpts.filter((o) => o.trim() !== '기타');
+      const selectedRegular = regularOpts.filter((o) => currentRaw.split(', ').includes(o));
+
+      let updatedRegular: string[];
+      if (selectedRegular.includes(option)) {
+        updatedRegular = selectedRegular.filter((o) => o !== option);
       } else {
-        updated = [...currentList, option];
+        updatedRegular = [...selectedRegular, option];
       }
 
-      return { ...prev, [questionId]: updated.join(', ') };
+      // '기타' 작성 내용이 있다면 끝에 유지
+      const hasOther = currentRaw.includes('기타:') || currentRaw.split(', ').includes('기타');
+      if (hasOther) {
+        const text = otherTexts[questionId] || '';
+        updatedRegular.push(text ? `기타: ${text}` : '기타');
+      }
+
+      return { ...prev, [questionId]: updatedRegular.join(', ') };
     });
     setValidationError(null);
   };
@@ -423,10 +435,12 @@ export default function UserSurveyPage() {
                   <div className="space-y-2 pt-1">
                     {opts.map((opt, oIdx) => {
                       const isOther = opt.trim() === '기타';
-                      const selectedList = (answers[q.id] || '').split(', ').filter(Boolean);
+                      const currentRaw = answers[q.id] || '';
+                      const regularOpts = opts.filter((o) => o.trim() !== '기타');
+                      const selectedRegular = regularOpts.filter((o) => currentRaw.split(', ').includes(o));
                       const isChecked = isOther
-                        ? selectedList.some((o) => o === '기타' || o.startsWith('기타: '))
-                        : selectedList.includes(opt);
+                        ? (currentRaw.includes('기타:') || currentRaw.split(', ').includes('기타'))
+                        : selectedRegular.includes(opt);
 
                       return (
                         <div key={oIdx} className="space-y-2">
@@ -439,13 +453,13 @@ export default function UserSurveyPage() {
                               onChange={() => {
                                 if (isOther) {
                                   if (isChecked) {
-                                    const next = selectedList.filter((o) => o !== '기타' && !o.startsWith('기타: '));
-                                    setAnswers((prev) => ({ ...prev, [q.id]: next.join(', ') }));
+                                    // '기타' 체크 해제 시 일반 옵션들만 남김
+                                    setAnswers((prev) => ({ ...prev, [q.id]: selectedRegular.join(', ') }));
                                   } else {
+                                    // '기타' 체크 시 기존 입력 텍스트 또는 '기타' 토큰 추가
                                     const text = otherTexts[q.id] || '';
                                     const otherToken = text ? `기타: ${text}` : '기타';
-                                    const next = [...selectedList, otherToken];
-                                    setAnswers((prev) => ({ ...prev, [q.id]: next.join(', ') }));
+                                    setAnswers((prev) => ({ ...prev, [q.id]: [...selectedRegular, otherToken].join(', ') }));
                                   }
                                 } else {
                                   handleMultipleAnswerChange(q.id, opt);
@@ -465,10 +479,12 @@ export default function UserSurveyPage() {
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   setOtherTexts((prev) => ({ ...prev, [q.id]: val }));
-                                  const currentItems = (answers[q.id] || '').split(', ').filter(Boolean);
-                                  const filtered = currentItems.filter((o) => o !== '기타' && !o.startsWith('기타: '));
-                                  filtered.push(val ? `기타: ${val}` : '기타');
-                                  setAnswers((prev) => ({ ...prev, [q.id]: filtered.join(', ') }));
+                                  // 중요: 사용자가 입력한 텍스트에 쉼표(,)가 포함되어 있어도 일반 옵션 목록과 섞이지 않도록 정형화된 일반 옵션 목록을 기준으로 결합
+                                  const otherToken = val ? `기타: ${val}` : '기타';
+                                  setAnswers((prev) => ({
+                                    ...prev,
+                                    [q.id]: [...selectedRegular, otherToken].join(', ')
+                                  }));
                                   setValidationError(null);
                                 }}
                                 className="w-full text-xs p-2.5 bg-white border border-blue-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
