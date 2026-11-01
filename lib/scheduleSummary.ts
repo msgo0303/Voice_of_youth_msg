@@ -248,7 +248,7 @@ export async function sendZoomScheduleSummaryToTelegram(formId: string): Promise
   );
 
   const defaultWedSlots = ['수 07:00', '수 12:00', '수 19:30', '수 22:00'];
-  const defaultSunSlots = ['일 08:00', '일 12:00', '일 15:30', '일 19:30', '일 22:00'];
+  const defaultSunSlots = ['일 08:00', '일 12:00', '일 15:00', '일 19:30', '일 22:00'];
 
   const wednesdaySlots =
     rawOptions.filter((opt: string) => opt.startsWith('수')).length > 0
@@ -382,6 +382,15 @@ export async function sendZoomScheduleSummaryToTelegram(formId: string): Promise
         .map((s: string) => s.trim())
         .filter(Boolean);
     }
+
+    // 일요일 15:30 -> 15:00 하위 호환 매핑 (이전에 15:30을 선택한 사람도 15:00 명단으로 자동 인식)
+    chosenOptions = chosenOptions.map((opt: string) => {
+      const trimmed = opt.trim();
+      if (/일.*15:30/.test(trimmed) || trimmed === '15:30') {
+        return trimmed.replace('15:30', '15:00');
+      }
+      return trimmed;
+    });
 
     // Overwrite previous submission if the same (지역, 구역, 이름) submitted again
     latestByParticipant.set(personKey, {
