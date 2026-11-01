@@ -42,7 +42,7 @@ function parseOptionsFromAnswerValue(rawVal: string): string[] {
     .filter(Boolean);
 }
 
-// 보조 함수: 선택지 목록 중 일치하는 옵션 키 찾기 (공백 정규화 지원)
+// 보조 함수: 선택지 목록 중 일치하는 옵션 키 찾기 (공백 정규화 및 명칭 변경 하위 호환 지원)
 function matchOptionKey(val: string, options: string[]): string | null {
   if (!val) return null;
   // 1. 정확 일치
@@ -54,6 +54,12 @@ function matchOptionKey(val: string, options: string[]): string | null {
     if (opt.replace(/\s+/g, '') === normVal) {
       return opt;
     }
+  }
+
+  // 3. 옵션 명칭 변경 하위 호환 매핑
+  if (normVal === '짧은시간런타임') {
+    const matched = options.find((opt) => opt.replace(/\s+/g, '') === '짧은런타임');
+    if (matched) return matched;
   }
 
   return null;
