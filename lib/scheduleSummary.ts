@@ -464,28 +464,30 @@ export async function sendZoomScheduleSummaryToTelegram(formId: string): Promise
   msg += `🗓️ <b>[수요일] 총 참여: ${wednesdayParticipants.size}명</b>\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━\n`;
 
+  let wednesdayListText = '';
   wednesdaySlots.forEach((slot: string) => {
     const timeOnly = slot.replace(/^수\s*/, '');
     const members = sortParticipants(slotMap[slot] || []);
     const count = members.length;
     const listText = count > 0 ? members.map((m) => escapeHtml(m.displayName)).join(', ') : '-';
-    msg += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
+    wednesdayListText += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
   });
-
-  msg += `\n`;
+  msg += `<blockquote expandable>${wednesdayListText.trimEnd()}</blockquote>\n\n`;
 
   // Sunday Section
   msg += `━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `🗓️ <b>[일요일] 총 참여: ${sundayParticipants.size}명</b>\n`;
   msg += `━━━━━━━━━━━━━━━━━━━━\n`;
 
+  let sundayListText = '';
   sundaySlots.forEach((slot: string) => {
     const timeOnly = slot.replace(/^일\s*/, '');
     const members = sortParticipants(slotMap[slot] || []);
     const count = members.length;
     const listText = count > 0 ? members.map((m) => escapeHtml(m.displayName)).join(', ') : '-';
-    msg += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
+    sundayListText += `• <b>${timeOnly}</b> (${count}명): ${listText}\n`;
   });
+  msg += `<blockquote expandable>${sundayListText.trimEnd()}</blockquote>\n`;
 
   // Target chat and topic resolution
   let targetChatId = form.response_chat_id;
